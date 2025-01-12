@@ -132,7 +132,7 @@ public class QLauncher {
 
 
     public static void injectLifecycleForProcess(Context ctx) {
-        if (PlatformUtils.INSTANCE.isMqq() && PlatformUtils.INSTANCE.isMainProcess()) {
+        if (SyncUtils.isMainProcess()) {
             post(() -> {
                 Logger.i("Inject Lifecycle For Process....");
                 Parasitics.injectModuleResources(ctx.getResources());
