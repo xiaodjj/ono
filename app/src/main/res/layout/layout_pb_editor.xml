@@ -1,0 +1,57 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <Button
+        android:id="@+id/btn_editor_format"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="格式化"
+        android:background="#00000000"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        tools:ignore="UselessParent">
+
+        <moe.ono.ui.view.NonScrollingScrollView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@color/mask_bg"
+            android:clickable="false"
+            android:focusable="false">
+
+            <TextView
+                android:id="@+id/tv_line_numbers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="top|end"
+                android:padding="5dp"
+                android:textColor="@color/firstTextColor"
+                android:textSize="14sp"
+                />
+        </moe.ono.ui.view.NonScrollingScrollView>
+
+        <EditText
+            android:id="@+id/json_editor"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/card_bg"
+            android:gravity="top"
+            android:padding="10dp"
+            android:textColor="@color/firstTextColor"
+            android:textSize="14sp"
+            android:scrollbars="vertical"
+            android:inputType="textMultiLine"
+            android:overScrollMode="always" />
+
+    </LinearLayout>
+
+</LinearLayout>
+
+

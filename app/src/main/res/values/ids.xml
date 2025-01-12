@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="OnO_settingEntryItem" type="id" />
+    <item name="root" type="id" />
+    <item name="main_activity_menuItem_toggleDesktopIcon" type="id" />
+</resources>

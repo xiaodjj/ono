@@ -1,0 +1,37 @@
+{
+  "version": 3,
+  "artifactType": {
+    "type": "APK",
+    "kind": "Directory"
+  },
+  "applicationId": "moe.ono",
+  "variantName": "release",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "attributes": [],
+      "versionCode": 25011117,
+      "versionName": "f83124b.01111719",
+      "outputFile": "ONO-RELEASE-f83124b.01111719.apk"
+    }
+  ],
+  "elementType": "File",
+  "baselineProfiles": [
+    {
+      "minApi": 28,
+      "maxApi": 30,
+      "baselineProfiles": [
+        "baselineProfiles/1/ONO-RELEASE-f83124b.01111719.dm"
+      ]
+    },
+    {
+      "minApi": 31,
+      "maxApi": 2147483647,
+      "baselineProfiles": [
+        "baselineProfiles/0/ONO-RELEASE-f83124b.01111719.dm"
+      ]
+    }
+  ],
+  "minSdkVersionForDexing": 29
+}
