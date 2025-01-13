@@ -15,7 +15,6 @@ public class HookItemFactory {
 
     static {
         List<BaseHookItem> items = HookItemEntryList.getAllHookItems();
-        //添加到map中
         for (BaseHookItem item : items) {
             ITEM_MAP.put(item.getClass(), item);
         }

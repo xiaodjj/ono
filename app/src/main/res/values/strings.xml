@@ -10,4 +10,5 @@
     <string name="click_to_find_method">查找</string>
     <string name="github">GitHub</string>
     <string name="cwuom_ono">cwuom/ono</string>
+    <string name="title_activity_ouosetting_step2">OUOSettingActivityStep2</string>
 </resources>

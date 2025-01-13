@@ -1,13 +1,8 @@
 package moe.ono.hooks.ui;
 
-import static moe.ono.config.CacheConfig.isSetEntry;
-import static moe.ono.config.CacheConfig.setIsSetEntry;
-import static moe.ono.util.Initiator.loadClass;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
 
 import androidx.annotation.NonNull;
 
@@ -15,30 +10,26 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
 import kotlin.collections.ArraysKt;
 import kotlin.jvm.functions.Function0;
 import moe.ono.R;
 import moe.ono.activity.OUOSettingActivity;
 import moe.ono.config.CacheConfig;
 import moe.ono.hooks.XHook;
-import moe.ono.hooks._base.BaseSwitchFunctionHookItem;
+import moe.ono.hooks._base.ApiHookItem;
 import moe.ono.hooks._core.annotation.HookItem;
 import moe.ono.lifecycle.Parasitics;
 import moe.ono.reflex.Reflex;
-import moe.ono.startup.HookBase;
 import moe.ono.util.Initiator;
 import moe.ono.util.Logger;
 
 @HookItem(path = "设置模块入口", description = "")
-public class MainSettingEntranceInjector extends BaseSwitchFunctionHookItem {
+public class MainSettingEntranceInjector extends ApiHookItem {
     private void injectSettingEntryForMainSettingConfigProvider() throws ReflectiveOperationException {
         // 8.9.70+
         Class<?> kMainSettingFragment = Initiator.load("com.tencent.mobileqq.setting.main.MainSettingFragment");

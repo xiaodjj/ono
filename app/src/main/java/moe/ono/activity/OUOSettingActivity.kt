@@ -1,5 +1,6 @@
 package moe.ono.activity
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
@@ -16,30 +17,34 @@ import android.view.ViewGroup
 import android.view.WindowInsetsController
 import android.view.WindowManager
 import androidx.annotation.CallSuper
+import androidx.preference.Preference
+import androidx.preference.PreferenceFragmentCompat
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import moe.ono.BuildConfig
 import moe.ono.R
-import moe.ono.constants.PackageConstants
+import moe.ono.config.ConfigManager
+import moe.ono.config.SettingItem
+import moe.ono.config.getDynamicSettings
+import moe.ono.constants.Constants.PrekEnableLog
+import moe.ono.constants.Constants.PrekSendFakeFile
 import moe.ono.databinding.ActivitySettingBinding
 import moe.ono.dexkit.TargetManager
 import moe.ono.dexkit.TargetManager.removeAllMethodSignature
 import moe.ono.fragment.BaseSettingFragment
+import moe.ono.hooks._core.factory.HookItemFactory
 import moe.ono.hooks.base.util.Toasts
 import moe.ono.hostInfo
 import moe.ono.isInHostProcess
-import moe.ono.ui.ModuleThemeManager
 import moe.ono.ui.ThemeAttrUtils
 import moe.ono.ui.view.BgEffectPainter
-import mqq.app.AppRuntime
+import moe.ono.util.Utils.convertTimestampToDate
+import moe.ono.util.Utils.jump
+import rikka.material.preference.MaterialSwitchPreference
 import java.lang.Integer.max
 
 open class OUOSettingActivity : BaseActivity() {
-    private val FRAGMENT_TAG = "OUOSettingActivity.FRAGMENT_TAG"
-    private val FRAGMENT_SAVED_STATE_KEY = "OUOSettingActivity.FRAGMENT_SAVED_STATE_KEY"
-    private val FRAGMENT_CLASS_KEY = "OUOSettingActivity.FRAGMENT_CLASS_KEY"
-    private val FRAGMENT_ARGS_KEY = "OUOSettingActivity.FRAGMENT_ARGS_KEY"
-
     private var mAppBarLayoutHeight: Int = 0
     private val mPendingOnStartActions = ArrayList<Runnable>(4)
     private val mPendingOnResumeActions = ArrayList<Runnable>(4)
@@ -52,11 +57,7 @@ open class OUOSettingActivity : BaseActivity() {
     private val mHandler = Handler(Looper.getMainLooper())
     private lateinit var binding: ActivitySettingBinding
     private lateinit var mAppBarLayout: AppBarLayout
-    private lateinit var mAppToolBar: androidx.appcompat.widget.Toolbar
-
-    private val mHostAppPackages = setOf(
-        PackageConstants.PACKAGE_NAME_QQ,
-    )
+    lateinit var mAppToolBar: androidx.appcompat.widget.Toolbar
 
     private val runnableBgEffect = object : Runnable {
         override fun run() {
@@ -73,7 +74,7 @@ open class OUOSettingActivity : BaseActivity() {
     @CallSuper
     override fun doOnEarlyCreate(savedInstanceState: Bundle?, isInitializing: Boolean) {
         super.doOnEarlyCreate(savedInstanceState, isInitializing)
-        setTheme(ModuleThemeManager.getCurrentStyleId())
+        setTheme(R.style.Theme_Ono)
     }
 
     /**
@@ -81,14 +82,17 @@ open class OUOSettingActivity : BaseActivity() {
      */
     override fun shouldRetainActivitySavedInstanceState() = false
 
+    @SuppressLint("CommitTransaction")
     override fun doOnCreate(savedInstanceState: Bundle?): Boolean {
         // we don't want the Fragment to be recreated
-        setTheme(R.style.Theme_MaiTungTMDesign_DayNight)
+        DynamicColors.applyToActivitiesIfAvailable(this.application)
+        getTheme().applyStyle(rikka.material.preference.R.style.ThemeOverlay_Rikka_Material3_Preference, true)
+
+        val title = intent.getStringExtra("title")
 
         super.doOnCreate(null)
         binding = ActivitySettingBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         // update window background, I don't know why, but it's necessary
         val bgColor = ThemeAttrUtils.resolveColorOrDefaultColorInt(this, android.R.attr.windowBackground, 0)
         window.setBackgroundDrawable(ColorDrawable(bgColor))
@@ -147,12 +151,79 @@ open class OUOSettingActivity : BaseActivity() {
             }
         }
 
+        if (title != null) {
+            mAppToolBar.title = title
+            mAppToolBar.menu.clear()
+        }
+
+
+        supportFragmentManager
+            .beginTransaction()
+            .replace(
+                R.id.settings,
+                if (title == null) {
+                    SettingsFragment()
+                } else {
+                    SettingsFragmentNextStep(title)
+                }
+            )
+            .commit()
+
+
         return true
+    }
+
+    class SettingsFragment : PreferenceFragmentCompat() {
+        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+            setPreferencesFromResource(R.xml.root_preferences, rootKey)
+            val version = findPreference<Preference>("version")
+            val buildTime = findPreference<Preference>("build_time")
+            val buildUUID = findPreference<Preference>("build_uuid")
+            val enableLog = findPreference<MaterialSwitchPreference>("prek_enable_log")
+            version?.setSummary(BuildConfig.VERSION_NAME)
+            buildTime?.setSummary(convertTimestampToDate(BuildConfig.BUILD_TIMESTAMP))
+            buildUUID?.setSummary(BuildConfig.BUILD_UUID)
+            enableLog?.isChecked = ConfigManager.getDefaultConfig().getBooleanOrFalse(PrekEnableLog)
+            enableLog?.setOnPreferenceChangeListener { _, newValue ->
+                val isEnabled = newValue as Boolean
+                ConfigManager.getDefaultConfig().edit().putBoolean(PrekEnableLog, isEnabled).apply()
+                true
+            }
+
+        }
+
+        override fun onPreferenceTreeClick(preference: Preference): Boolean {
+            val key = preference.key
+            when (key) {
+                "telegram" -> {
+                    jump(requireContext(), "https://t.me/ouom_pub")
+                    return super.onPreferenceTreeClick(preference)
+                }
+                "github" -> {
+                    jump(requireContext(), "https://github.com/cwuom/ono")
+                    return super.onPreferenceTreeClick(preference)
+                }
+                "build_time", "build_uuid", "version","prek_enable_log" -> {
+                    return super.onPreferenceTreeClick(preference)
+                }
+            }
+
+            key?.let {
+                val intent = Intent(requireContext(), OUOSettingActivity::class.java).apply {
+                    putExtra("title", it)
+                }
+                startActivity(intent)
+            }
+            return super.onPreferenceTreeClick(preference)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         super.onCreateOptionsMenu(menu)
-        menuInflater.inflate(R.menu.ouo_setting_menu, menu)
+        if (intent.getStringExtra("title") == null){
+            menuInflater.inflate(R.menu.ouo_setting_menu, menu)
+        }
+
         return true
     }
 
@@ -234,9 +305,7 @@ open class OUOSettingActivity : BaseActivity() {
     /*
    * Hyper OS 2.0 !
    * */
-    private fun setHyperBackground(){
-        DynamicColors.applyToActivitiesIfAvailable(application)
-
+    private fun setHyperBackground() {
         val contentView = findViewById<ViewGroup>(android.R.id.content)
 
         mBgEffectView = LayoutInflater.from(this).inflate(R.layout.layout_effect_bg, contentView, false)
@@ -253,6 +322,59 @@ open class OUOSettingActivity : BaseActivity() {
             mHandler.post(runnableBgEffect)
         }
 
+    }
+
+    class SettingsFragmentNextStep(private val t: String) : PreferenceFragmentCompat() {
+
+        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+            preferenceManager.createPreferenceScreen(requireContext()).apply {
+                getDynamicSettings().forEach { settingItem ->
+                    if (settingItem.t == t){
+                        val preference = MaterialSwitchPreference(context).apply {
+                            key = settingItem.key
+                            title = settingItem.title
+                            summary = settingItem.summary
+                            icon = settingItem.iconResId?.let { context.getDrawable(it) }
+                            isChecked = settingItem.isSwitch
+                            isPersistent = false
+                            setOnPreferenceClickListener {
+                                handleItemClick(settingItem, isChecked)
+                                true
+                            }
+                        }
+                        addPreference(preference)
+                    }
+
+                }
+
+                when (t) {
+                    "娱乐功能" -> {
+                        val preference = MaterialSwitchPreference(context).apply {
+                            key = "发送假文件"
+                            title = "发送假文件"
+                            summary = "此选项需要配合“聊天与消息/快捷菜单”使用"
+                            isChecked = ConfigManager.getDefaultConfig().getBooleanOrFalse(PrekSendFakeFile)
+                            isPersistent = false
+                            setOnPreferenceClickListener {
+                                ConfigManager.getDefaultConfig().edit().putBoolean(PrekSendFakeFile, isChecked).apply()
+                                true
+                            }
+                        }
+                        addPreference(preference)
+                    }
+                }
+
+            }.also { preferenceScreen = it }
+        }
+
+        private fun handleItemClick(settingItem: SettingItem, isChecked: Boolean) {
+            ConfigManager.getDefaultConfig().edit().putBoolean("setting_switch_value_${settingItem.path}", isChecked).apply()
+            val item = HookItemFactory.getItem(settingItem.clazz::class.java)
+            item.isEnabled = isChecked
+            if (isChecked){
+                item.startLoad()
+            }
+        }
     }
 
     companion object {

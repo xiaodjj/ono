@@ -4,24 +4,18 @@ import static moe.ono.util.Initiator.loadClass;
 import static moe.ono.util.SyncUtils.runOnUiThread;
 
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
 import java.lang.reflect.Method;
 
-import moe.ono.hooks._base.BaseFunctionHookItem;
-import moe.ono.hooks._base.BaseHookItem;
-import moe.ono.hooks._base.BaseSwitchFunctionHookItem;
+import moe.ono.hooks._base.ApiHookItem;
 import moe.ono.hooks._core.annotation.HookItem;
-import moe.ono.startup.HookBase;
 import moe.ono.util.Logger;
 
-@HookItem(path = "Toasts", description = "")
-public class Toasts extends BaseFunctionHookItem {
-    public static String method_name = "Toasts";
-
+@HookItem(path = "API/Toasts")
+public class Toasts extends ApiHookItem {
     private static Method showQQToastInUiThreadMethod;
 
     public static final int TYPE_INFO = 0;

@@ -1,5 +1,7 @@
 package moe.ono.util;
 
+import android.os.Parcelable;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -317,5 +319,44 @@ public class Initiator {
         sNotHaveNtStartupDirector = true;
         return null;
     }
+
+    public static Class<?> _BaseQQMessageFacade() {
+        return load("com/tencent/imcore/message/BaseQQMessageFacade");
+    }
+
+    public static Class<?> _QQMessageFacade() {
+        return findClassWithSynthetics("com/tencent/mobileqq/app/message/QQMessageFacade",
+                "com/tencent/imcore/message/QQMessageFacade");
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends Parcelable> Class<T> _SessionInfo() {
+        return (Class<T>) load("com/tencent/mobileqq/activity/aio/SessionInfo");
+    }
+
+    public static Class<?> _BaseChatPie() {
+        return findClassWithSynthetics("com/tencent/mobileqq/activity/aio/core/BaseChatPie", "com.tencent.mobileqq.activity.BaseChatPie");
+    }
+
+    public static Class<?> _TroopMemberInfo() {
+        return findClassWithSynthetics("com.tencent.mobileqq.data.troop.TroopMemberInfo", "com.tencent.mobileqq.data.TroopMemberInfo");
+    }
+
+    public static Class<?> _TroopInfo() {
+        return findClassWithSynthetics("com.tencent.mobileqq.data.troop.TroopInfo", "com.tencent.mobileqq.data.TroopInfo");
+    }
+
+    public static Class<?> _Conversation() {
+        return findClassWithSynthetics("com/tencent/mobileqq/activity/home/Conversation", "com/tencent/mobileqq/activity/Conversation", 5);
+    }
+
+    public static Class<?> _ChatMessage() {
+        return load("com.tencent.mobileqq.data.ChatMessage");
+    }
+
+    public static Class<?> _MessageRecord() {
+        return load("com/tencent/mobileqq/data/MessageRecord");
+    }
+
 
 }

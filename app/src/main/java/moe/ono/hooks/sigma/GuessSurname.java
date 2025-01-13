@@ -1,5 +1,6 @@
 package moe.ono.hooks.sigma;
 
+import static de.robv.android.xposed.XposedHelpers.findMethodExact;
 import static moe.ono.util.Initiator.loadClass;
 
 import android.app.Activity;
@@ -30,15 +31,14 @@ import java.util.Map;
 import java.util.Objects;
 
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedHelpers;
 import moe.ono.hooks._base.BaseSwitchFunctionHookItem;
 import moe.ono.hooks._core.annotation.HookItem;
 import moe.ono.util.Logger;
 import moe.ono.util.SyncUtils;
 
 @HookItem(
-        path = "sigma/猜姓氏",
-        description = "给好友/陌生人大额转账触发（如5000元）"
+        path = "Sigma/猜姓氏",
+        description = "给好友/陌生人大额转账触发（如5000元）\n此选项需要重启生效"
 )
 public class GuessSurname extends BaseSwitchFunctionHookItem {
     public boolean stop_flag = false;
@@ -133,109 +133,99 @@ public class GuessSurname extends BaseSwitchFunctionHookItem {
 
 
         /////// onCreateView#com.tenpay.sdk.activity.PayActivity ///////
-        XposedHelpers.findAndHookMethod(cPayActivity, "onCreateView", android.view.LayoutInflater.class, android.view.ViewGroup.class, android.os.Bundle.class, new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Context context = ((ViewGroup) param.args[1]).getContext();
-                doOnStop(context);
-
-                super.beforeHookedMethod(param);
-            }
+        Method m = findMethodExact(cPayActivity, "onCreateView", android.view.LayoutInflater.class, android.view.ViewGroup.class, android.os.Bundle.class);
+        hookBefore(m, param -> {
+            Context context = ((ViewGroup) param.args[1]).getContext();
+            doOnStop(context);
         });
 
 
         /////// fillNameRequestAction#com.tenpay.sdk.net.core.actions.ConfirmRequestAction ///////
-        XposedHelpers.findAndHookMethod(cConfirmRequestAction, "fillNameRequestAction", android.content.Context.class, java.lang.String.class, org.json.JSONObject.class, cRetryAbility, cFunction0, new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                Logger.i("ConfirmRequestAction -> on beforeHookedMethod");
-                start_flag = true;
-                stop_flag = false;
-                lst_tried_surname.clear();
+        Method m2 = findMethodExact(cConfirmRequestAction, "fillNameRequestAction", android.content.Context.class, java.lang.String.class, org.json.JSONObject.class, cRetryAbility, cFunction0);
+        hookBefore(m2, param -> {
+            Logger.i("ConfirmRequestAction -> on beforeHookedMethod");
+            start_flag = true;
+            stop_flag = false;
+            lst_tried_surname.clear();
 
 //                Context context = (Context) param.args[0];
-                String string = (String) param.args[1];
-                JSONObject jsonObject = (JSONObject) param.args[2];
-                Object retryAbility = param.args[3];
-                Object function0 = param.args[4];
+            String string = (String) param.args[1];
+            JSONObject jsonObject = (JSONObject) param.args[2];
+            Object retryAbility = param.args[3];
+            Object function0 = param.args[4];
 
-                new Thread(() -> {
-                    failCount = 0;
-                    try {
-                        for (String surname : lst_surname) {
-                            if (stop_flag) {
-                                Logger.w("stop!! reason: stop_flag==true");
-                                return;
-                            }
-                            Method retryMethod = retryAbility.getClass().getMethod("retry", Map.class);
-                            Method functionMethod = function0.getClass().getMethod("invoke");
-                            Map<String, String> extraMap = new HashMap<>();
-                            extraMap.put("step", "2");
-                            extraMap.put("fillName", surname);
-                            Logger.w("fillName: " + surname);
-                            Toast(surname, 0);
-
-                            functionMethod.invoke(function0);
-                            retryMethod.invoke(retryAbility, extraMap);
-                            Thread.sleep(250);
+            new Thread(() -> {
+                failCount = 0;
+                try {
+                    for (String surname : lst_surname) {
+                        if (stop_flag) {
+                            Logger.w("stop!! reason: stop_flag==true");
+                            return;
                         }
-                        Toast("跑完了", 1);
-                    } catch (NoSuchMethodException | IllegalAccessException |
-                             InvocationTargetException e) {
-                        Logger.e("The method 'retry' does not exist.");
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
+                        Method retryMethod = retryAbility.getClass().getMethod("retry", Map.class);
+                        Method functionMethod = function0.getClass().getMethod("invoke");
+                        Map<String, String> extraMap = new HashMap<>();
+                        extraMap.put("step", "2");
+                        extraMap.put("fillName", surname);
+                        Logger.w("fillName: " + surname);
+                        Toast(surname, 0);
+
+                        functionMethod.invoke(function0);
+                        retryMethod.invoke(retryAbility, extraMap);
+                        Thread.sleep(300);
                     }
-                }).start();
+                    Toast("跑完了", 1);
+                } catch (NoSuchMethodException | IllegalAccessException |
+                         InvocationTargetException e) {
+                    Logger.e("The method 'retry' does not exist.");
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }).start();
 
-                Logger.d("string: " + string);
-                Logger.d("jsonObject: " + jsonObject.toString());
-                Logger.d("retryAbility: " + retryAbility.toString());
-                Logger.d("function0: " + function0.toString());
+            Logger.d("string: " + string);
+            Logger.d("jsonObject: " + jsonObject.toString());
+            Logger.d("retryAbility: " + retryAbility.toString());
+            Logger.d("function0: " + function0.toString());
 
 
-                name = string;
-                Toast("(?)"+name, 0);
+            name = string;
+            Toast("(?)"+name, 0);
 
-                super.beforeHookedMethod(param);
-            }
         });
 
         /////// encryptExtra#com.tenpay.sdk.net.core.processor.EncryptProcessor ///////
-        XposedHelpers.findAndHookMethod(cEncryptProcessor, "encryptExtra",
+        Method m3 = findMethodExact(cEncryptProcessor, "encryptExtra",
                 java.lang.String.class,
                 cSessionKey,
                 boolean.class,
                 boolean.class,
-                java.util.Map.class, java.util.Map.class, java.util.Map.class, cStatisticInfo, new XC_MethodHook() {
-                    @Override
-                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                        Map<String, String> processResult = (Map<String, String>) param.args[5];
+                java.util.Map.class, java.util.Map.class, java.util.Map.class, cStatisticInfo);
+        hookBefore(m3, param -> {
+            Map<String, String> processResult = (Map<String, String>) param.args[5];
 
-                        String strProcessResult = processResult.toString();
-                        Logger.d("before encrypt processResult : " + strProcessResult);
-                        if (!start_flag) {
-                            return;
-                        }
+            String strProcessResult = processResult.toString();
+            Logger.d("before encrypt processResult : " + strProcessResult);
+            if (!start_flag) {
+                return;
+            }
 
-                        String encodedFillName = processResult.get("fillName");
-                        if (encodedFillName != null) {
-                            String decodedFillName = null;
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                decodedFillName = URLDecoder.decode(encodedFillName, StandardCharsets.UTF_8);
-                            }
-                            lst_tried_surname.add(decodedFillName);
-                        }
+            String encodedFillName = processResult.get("fillName");
+            if (encodedFillName != null) {
+                String decodedFillName = null;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    decodedFillName = URLDecoder.decode(encodedFillName, StandardCharsets.UTF_8);
+                }
+                lst_tried_surname.add(decodedFillName);
+            }
 
-                        super.beforeHookedMethod(param);
-                    }
-                });
-
+        });
 
         /////// setBizResponse#com.tenpay.sdk.net.core.result.NetResult ///////
-        XposedHelpers.findAndHookMethod(cNetResult, "setBizResponse", java.lang.Object.class, new XC_MethodHook() {
+        Method m4 = findMethodExact(cNetResult, "setBizResponse", java.lang.Object.class);
+        hookBefore(m4, new HookAction() {
             @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+            public void call(XC_MethodHook.MethodHookParam param) throws Throwable {
                 Logger.i("NetResult -> on beforeHookedMethod");
                 Object obj = param.args[0];
                 Logger.d("NetResult - obj ->"+ obj);
@@ -255,7 +245,6 @@ public class GuessSurname extends BaseSwitchFunctionHookItem {
                         Logger.w("stop_flag = true");
                     }
                 } catch (Exception ignored) {}
-                super.beforeHookedMethod(param);
             }
         });
 

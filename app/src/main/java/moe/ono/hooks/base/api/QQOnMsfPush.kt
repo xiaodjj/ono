@@ -1,0 +1,96 @@
+package moe.ono.hooks.base.api
+
+import de.robv.android.xposed.XC_MethodHook
+import de.robv.android.xposed.XposedBridge
+import moe.ono.hooks._base.ApiHookItem
+import moe.ono.hooks._core.annotation.HookItem
+import moe.ono.hooks.protocol.HoldRevokeMessageCore
+import moe.ono.hooks.ui.BlockBadlanguage
+import moe.ono.hooks.ui.DoNotBrushMeOff
+import moe.ono.reflex.ClassUtils
+import moe.ono.reflex.MethodUtils
+import moe.ono.util.Logger
+import top.artmoe.inao.entries.InfoSyncPushOuterClass
+import top.artmoe.inao.entries.MsgPushOuterClass
+
+@HookItem(path = "API/监听MsfPush")
+class QQOnMsfPush : ApiHookItem() {
+    override fun load(classLoader: ClassLoader) {
+        val onMSFPushMethod = MethodUtils.create("com.tencent.qqnt.kernel.nativeinterface.IQQNTWrapperSession\$CppProxy")
+            .params(
+                String::class.java,
+                ByteArray::class.java,
+                ClassUtils.findClass("com.tencent.qqnt.kernel.nativeinterface.PushExtraInfo")
+            )
+            .methodName("onMsfPush")
+            .first()
+
+        XposedBridge.hookMethod(onMSFPushMethod, object : XC_MethodHook() {
+            @Throws(Throwable::class)
+            override fun beforeHookedMethod(param: MethodHookParam) {
+                val cmd = param.args[0] as String
+                val protoBuf = param.args[1] as ByteArray
+                if (cmd == "trpc.msg.register_proxy.RegisterProxy.InfoSyncPush") {
+                    handleInfoSyncPush(protoBuf, param)
+                } else if (cmd == "trpc.msg.olpush.OlPushService.MsgPush") {
+                    handleMsgPush(protoBuf, param)
+                }
+                super.beforeHookedMethod(param)
+            }
+
+            @Throws(Throwable::class)
+            override fun afterHookedMethod(param: MethodHookParam) {
+                super.afterHookedMethod(param)
+            }
+        })
+    }
+
+    private fun handleInfoSyncPush(buffer: ByteArray, param: XC_MethodHook.MethodHookParam) {
+        val infoSyncPush = InfoSyncPushOuterClass.InfoSyncPush.parseFrom(buffer)
+        infoSyncPush.syncRecallContent.syncInfoBodyList.forEach { syncInfoBody ->
+            syncInfoBody.msgList.forEach { qqMessage ->
+                val msgType = qqMessage.messageContentInfo.msgType
+                val msgSubType = qqMessage.messageContentInfo.msgSubType
+                if ((msgType == 732 && msgSubType == 17) || (msgType == 528 && msgSubType == 138)) {
+                    val newInfoSyncPush = infoSyncPush.toBuilder().apply {
+                        syncRecallContent = syncRecallContent.toBuilder().apply {
+                            for (i in 0 until syncInfoBodyCount) {
+                                setSyncInfoBody(
+                                    i, getSyncInfoBody(i).toBuilder().clearMsg().build()
+                                )
+                            }
+                        }.build()
+                    }.build()
+                    param.args[1] = newInfoSyncPush.toByteArray()
+                }
+            }
+        }
+    }
+
+    private fun handleMsgPush(buffer: ByteArray, param: XC_MethodHook.MethodHookParam) {
+        val msgPush = MsgPushOuterClass.MsgPush.parseFrom(buffer)
+        val msg = msgPush.qqMessage
+//         if (msgTargetUid != EnvHelper.getQQAppRuntime().currentUid) return  //  不是当前用户接受就返回
+        val msgType = msg.messageContentInfo.msgType
+        val msgSubType = msg.messageContentInfo.msgSubType
+
+
+        val operationInfoByteArray = msg.messageBody.operationInfo.toByteArray()
+
+
+        when (msgType) {
+            82 -> {
+                DoNotBrushMeOff().filter(msgPush, param)
+                BlockBadlanguage().filter(msgPush, param)
+            }
+
+            732 -> when (msgSubType) {
+                17 -> HoldRevokeMessageCore.onGroupRecallByMsgPush(operationInfoByteArray, msgPush, param)
+            }
+
+            528 -> when (msgSubType) {
+                138 -> HoldRevokeMessageCore.onC2CRecallByMsgPush(operationInfoByteArray, msgPush, param)
+            }
+        }
+    }
+}

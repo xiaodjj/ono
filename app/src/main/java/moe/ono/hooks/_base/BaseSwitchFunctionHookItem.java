@@ -7,22 +7,12 @@ import moe.ono.util.SyncUtils;
 
 public abstract class BaseSwitchFunctionHookItem extends BaseHookItem {
 
-    private boolean enabled = isAlwaysRun();
+    private boolean enabled;
     private final int targetProcess = targetProcess();
 
-    public String getTip() {
-        return null;
-    }
 
     public View.OnClickListener getOnClickListener() {
         return null;
-    }
-
-    /**
-     * 是否默认加载
-     */
-    public boolean isAlwaysRun() {
-        return true;
     }
 
     /**
@@ -47,7 +37,6 @@ public abstract class BaseSwitchFunctionHookItem extends BaseHookItem {
     }
 
     protected final void tryExecute(XC_MethodHook.MethodHookParam param, HookAction hookAction) {
-        //只有在开启了的情况下才执行
         if (isEnabled()) {
             super.tryExecute(param, hookAction);
         }

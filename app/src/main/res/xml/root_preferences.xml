@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory
+        android:key="settings_category"
+        android:title="设定">
+        <Preference
+            app:key="聊天与消息"
+            app:icon="@drawable/ic_twotone_message_24"
+            app:title="聊天与消息" />
+
+        <Preference
+            app:key="资料卡"
+            app:icon="@drawable/ic_profile"
+            app:title="资料卡" />
+
+        <Preference
+            app:key="优化与修复"
+            app:icon="@drawable/ic_baseline_auto_fix_high_24"
+            app:title="优化与修复" />
+
+        <Preference
+            app:key="开发者选项"
+            app:icon="@drawable/ic_baseline_developer_mode_24"
+            app:title="开发者选项" />
+
+        <Preference
+            app:key="娱乐功能"
+            app:icon="@drawable/ic_baseline_free_breakfast_24"
+            app:title="娱乐功能" />
+
+        <Preference
+            app:key="Sigma"
+            app:icon="@drawable/ic_sigma"
+            app:title="Sigma" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="debug_category"
+        android:title="调试">
+
+        <rikka.material.preference.MaterialSwitchPreference
+            android:icon="@drawable/ic_baseline_border_color_24"
+            android:key="prek_enable_log"
+            android:title="日志记录"
+            android:summary="反馈问题前必须开启日志记录"
+            android:defaultValue="false"
+            android:persistent="false"
+            />
+
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="about_category"
+        android:title="关于">
+        <Preference
+            android:title="版本"
+            app:key="version"
+            app:summary="N/A" />
+
+        <Preference
+            android:title="编译时间"
+            app:key="build_time"
+            app:summary="N/A" />
+
+        <Preference
+            android:title="Build UUID"
+            app:key="build_uuid"
+            app:summary="N/A" />
+
+        <Preference
+            app:key="github"
+            app:icon="@drawable/ic_github"
+            app:summary="@string/github" />
+        <Preference
+            app:key="telegram"
+            app:icon="@drawable/ic_telegram"
+            app:summary="Telegram: @ouom_pub" />
+    </PreferenceCategory>
+</PreferenceScreen>

@@ -1,6 +1,8 @@
 package moe.ono.util;
 
 
+import static moe.ono.constants.Constants.PrekEnableLog;
+
 import android.annotation.SuppressLint;
 
 import java.io.File;
@@ -8,6 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
+import moe.ono.config.ConfigManager;
 import moe.ono.util.io.FileUtils;
 
 public class LogUtils {
@@ -85,7 +88,10 @@ public class LogUtils {
 
 
     private static void addLog(String fileName, String Description, Object content, boolean isError) {
-        String path = (isError ? getErrorLogDirectory() : getRunLogDirectory()) + fileName + ".txt";
+        if (!ConfigManager.getDefaultConfig().getBooleanOrFalse(PrekEnableLog)){
+            return;
+        }
+        String path = (isError ? getErrorLogDirectory() : getRunLogDirectory()) + fileName + ".log";
         StringBuilder stringBuffer = new StringBuilder(getTime());
         stringBuffer.append("\n").append(Description);
         if (content instanceof Exception) {
@@ -96,19 +102,12 @@ public class LogUtils {
     }
 
     public static String getTime() {
-        @SuppressLint("SimpleDateFormat") SimpleDateFormat df1 = new SimpleDateFormat("yyyy年MM月dd日"),
-                df2 = new SimpleDateFormat("E", Locale.CHINA),
-                df3 = new SimpleDateFormat("HH:mm:ss");
+        @SuppressLint("SimpleDateFormat") SimpleDateFormat df = new SimpleDateFormat("[yyyy/MM/dd HH:mm:ss]");
         Calendar calendar = Calendar.getInstance();
-        String TimeMsg1 = df1.format(calendar.getTime()),
-                TimeMsg2 = df2.format(calendar.getTime()),
-                TimeMsg3 = df3.format(calendar.getTime());
-        if (TimeMsg1.contains("年0"))//去掉多余的 0
-            TimeMsg1 = TimeMsg1.replace("年0", "年");
-        if (TimeMsg1.contains("月0"))
-            TimeMsg1 = TimeMsg1.replace("月0", "月");
-        if (TimeMsg2.contains("周"))
-            TimeMsg2 = TimeMsg2.replace("周", "星期"); // 转换为星期
-        return TimeMsg1 + TimeMsg2 + TimeMsg3;
+        return df.format(calendar.getTime());
+    }
+
+    public static void addError(String TAG, String msg) {
+        addLog(TAG, msg, null, true);
     }
 }

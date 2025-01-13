@@ -14,13 +14,7 @@ public class Logger {
 
     public static void e(@NonNull String msg) {
         android.util.Log.e(TAG, msg);
-    }
-
-    public static void e(@NonNull String msg, boolean output) {
-        android.util.Log.e(TAG, msg);
-        if (output){
-            XposedBridge.log(msg);
-        }
+        LogUtils.addError("common", msg);
     }
 
     public static void e(String tag, @NonNull String msg) {
@@ -29,30 +23,30 @@ public class Logger {
 
     public static void w(@NonNull String msg) {
         android.util.Log.w(TAG, msg);
+        LogUtils.addRunLog("common", msg);
     }
     public static void w(String tag, @NonNull String msg) {
         android.util.Log.w(TAG, tag + ": "+ msg);
+        LogUtils.addRunLog("common", msg);
     }
 
     public static void i(@NonNull String msg) {
         android.util.Log.i(TAG, msg);
+        LogUtils.addRunLog("common", msg);
     }
     public static void i(String tag, @NonNull String msg) {
         android.util.Log.i(TAG, tag + ": "+ msg);
+        LogUtils.addRunLog("common", msg);
     }
 
-    public static void i(@NonNull String msg, boolean output) {
-        android.util.Log.i(TAG, msg);
-        if (output){
-            XposedBridge.log(msg);
-        }
-    }
 
     public static void d(@NonNull String msg) {
         android.util.Log.d(TAG, msg);
+        LogUtils.addRunLog("common", msg);
     }
     public static void d(String tag, @NonNull String msg) {
         android.util.Log.d(TAG, tag + ": "+ msg);
+        LogUtils.addRunLog("common", msg);
     }
 
     public static void v(@NonNull String msg) {
@@ -64,13 +58,7 @@ public class Logger {
 
     public static void e(@NonNull Throwable e) {
         android.util.Log.e(TAG, e.toString(), e);
-    }
-
-    public static void e(@NonNull Throwable e, boolean output)  {
-        android.util.Log.e(TAG, e.toString(), e);
-        if (output){
-            XposedBridge.log(e);
-        }
+        LogUtils.addError("common", e);
     }
 
     public static void w(@NonNull Throwable e) {
@@ -94,6 +82,7 @@ public class Logger {
 
     public static void e(@NonNull String msg, @NonNull Throwable e) {
         android.util.Log.e(TAG, msg, e);
+        LogUtils.addError("common", e);
     }
 
     public static void w(@NonNull String msg, @NonNull Throwable e) {

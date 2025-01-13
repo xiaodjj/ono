@@ -176,6 +176,9 @@ protobuf {
 
 }
 
+configurations.configureEach {
+    exclude(group = "androidx.appcompat", module = "appcompat")
+}
 
 dependencies {
     implementation(libs.core.ktx)
@@ -214,9 +217,23 @@ dependencies {
     implementation(libs.google.guava)
 
     implementation(libs.google.protobuf.java)
+    implementation(libs.kotlinx.serialization.protobuf)
 
     implementation(libs.sealedEnum.runtime)
     ksp(libs.sealedEnum.ksp)
 
     ksp(projects.libs.util.annotationScanner)
+
+    // Material Preference
+    implementation(libs.material.preference)
+    implementation(libs.dev.appcompat)
+    implementation(libs.recyclerview)
+
+    // Preference
+    implementation(libs.preference)
+
+    // fastjson2
+    implementation(libs.fastjson2)
+
+
 }

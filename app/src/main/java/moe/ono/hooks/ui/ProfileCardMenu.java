@@ -1,5 +1,6 @@
 package moe.ono.hooks.ui;
 
+import static de.robv.android.xposed.XposedHelpers.findMethodExact;
 import static moe.ono.util.Initiator.loadClass;
 import static moe.ono.util.SyncUtils.postDelayed;
 
@@ -18,6 +19,9 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 
 import com.lxj.xpopup.XPopup;
+import com.lxj.xpopup.interfaces.OnSelectListener;
+
+import java.lang.reflect.Method;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
@@ -50,7 +54,7 @@ public class ProfileCardMenu extends BaseSwitchFunctionHookItem {
                     String text = tv.getText().toString();
                     qqNumber = text.replace("QQ号：", "").replaceAll("[^0-9]", "");
                 } catch (Exception ex) {
-                    Logger.e("无法获取QQ号: " + ex, true);
+                    Logger.e("无法获取QQ号: ", e);
                 }
             }
 
@@ -62,7 +66,7 @@ public class ProfileCardMenu extends BaseSwitchFunctionHookItem {
             try {
                 setting = Utils.getViewByDesc(activity, "设置", 200);
             } catch (InterruptedException e) {
-                Logger.e("查找设置按钮时出错: " + e, true);
+                Logger.e("查找设置按钮时出错: ", e);
             }
 
             if (setting != null) {
@@ -73,7 +77,7 @@ public class ProfileCardMenu extends BaseSwitchFunctionHookItem {
                     } catch (Exception ignored) {}
                 });
             } else {
-                Logger.e("设置按钮未找到", true);
+                Logger.e("设置按钮未找到");
             }
         }).start(), 100);
     }
@@ -82,15 +86,10 @@ public class ProfileCardMenu extends BaseSwitchFunctionHookItem {
     public void load(@NonNull ClassLoader classLoader) throws Throwable {
         try {
             Class<?> clazz = loadClass("com.tencent.mobileqq.profilecard.activity.FriendProfileCardActivity");
-            XposedHelpers.findAndHookMethod(clazz, "doOnCreate", Bundle.class,
-                    new XC_MethodHook() {
-                        @Override
-                        protected void afterHookedMethod(MethodHookParam param) {
-                            hookTargetActivity((Activity) param.thisObject);
-                        }
-                    });
+            Method m = findMethodExact(clazz, "doOnCreate", Bundle.class);
+            hookAfter(m, param -> hookTargetActivity((Activity) param.thisObject));
         } catch (ClassNotFoundException e) {
-            Logger.e("Failed to hook target method: " + e, true);
+            Logger.e(this.getItemName(), e);
         }
     }
 
@@ -100,8 +99,13 @@ public class ProfileCardMenu extends BaseSwitchFunctionHookItem {
         public boolean onLongClick(View v) {
             Context fixContext = CommonContextWrapper.createAppCompatContext(v.getContext());
             new XPopup.Builder(fixContext)
-                    .asCenterList("你要干啥？", new String[]{"看TA的小世界！", "看看TA的等级！", "不干啥"},
-                            (position, text) -> {
+                    .hasShadowBg(false)
+                    .atView(v)
+                    .asAttachList(new String[]{"跳转小世界", "查看等级"},
+                        new int[]{},
+                        new OnSelectListener() {
+                            @Override
+                            public void onSelect(int position, String text) {
                                 switch (position) {
                                     case 0:
                                         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("mqqapi://qcircle/openmainpage?uin=" + QQ));
@@ -116,7 +120,8 @@ public class ProfileCardMenu extends BaseSwitchFunctionHookItem {
                                         }
                                         break;
                                 }
-                            })
+                            }
+                        })
                     .show();
             return true;
         }

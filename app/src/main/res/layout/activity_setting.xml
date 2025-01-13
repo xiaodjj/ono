@@ -26,11 +26,14 @@
             android:layout_height="wrap_content"
             android:background="@null"
             app:title="@string/app_name"
-            app:menu="@menu/ouo_setting_menu"
             />
 
     </com.google.android.material.appbar.AppBarLayout>
 
+    <FrameLayout
+        android:id="@+id/settings"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
 
 

@@ -2,13 +2,15 @@ package moe.ono.hooks.ui;
 
 import static moe.ono.constants.Constants.CLAZZ_ACTIVITY_SPLASH;
 import static moe.ono.constants.Constants.CLAZZ_PANEL_ICON_LINEAR_LAYOUT;
+import static moe.ono.constants.Constants.PrekSendFakeFile;
+import static moe.ono.constants.Constants.PrekXXX;
+import static moe.ono.hooks._core.factory.HookItemFactory.getItem;
 import static moe.ono.util.Initiator.loadClass;
 import static moe.ono.util.SyncUtils.runOnUiThread;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -25,6 +27,7 @@ import java.util.List;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import moe.ono.config.CacheConfig;
+import moe.ono.config.ConfigManager;
 import moe.ono.creator.ElementSender;
 import moe.ono.creator.FakeFileSender;
 import moe.ono.hooks.XHook;
@@ -32,13 +35,12 @@ import moe.ono.hooks._base.BaseSwitchFunctionHookItem;
 import moe.ono.hooks._core.annotation.HookItem;
 import moe.ono.hooks.base.util.Toasts;
 import moe.ono.reflex.XMethod;
-import moe.ono.startup.HookBase;
 import moe.ono.ui.CommonContextWrapper;
 import moe.ono.util.Initiator;
 import moe.ono.util.Logger;
 
 @SuppressLint("DiscouragedApi")
-@HookItem(path = "聊天与消息/快捷菜单", description = "长按红包按钮调出快捷菜单")
+@HookItem(path = "聊天与消息/快捷菜单", description = "长按红包按钮调出快捷菜单，部分功能依赖此选项，推荐开启")
 public class HookBottomBtnRedPacket extends BaseSwitchFunctionHookItem {
     private final List<String> classNames = Arrays.asList(
             "com.tencent.mobileqq.aio.msglist.holder.component.avatar.AIOAvatarContentComponent",
@@ -55,7 +57,7 @@ public class HookBottomBtnRedPacket extends BaseSwitchFunctionHookItem {
         try {
             Method method = XMethod.clz(CLAZZ_PANEL_ICON_LINEAR_LAYOUT).ret(ImageView.class).ignoreParam().get();
 
-            XHook.hookAfter(method, param -> {
+            hookAfter(method, param -> {
                 ImageView imageView = (ImageView) param.getResult();
                 if ("红包".contentEquals(imageView.getContentDescription())){
                     imageView.setOnLongClickListener(view -> {
@@ -65,36 +67,48 @@ public class HookBottomBtnRedPacket extends BaseSwitchFunctionHookItem {
                     });
                 }
             });
+
             processForInstance();
         } catch (NoSuchMethodException e) {
-            Logger.e(e, true);
+            Logger.e(this.getItemName(), e);
         }
 
     }
 
     private void popMenu(Context fixCtx, Activity activity, View view){
+        boolean sendFakeFile = ConfigManager.getDefaultConfig().getBooleanOrFalse(PrekSendFakeFile);
+        boolean qqPacketHelper = ConfigManager.getDefaultConfig().getBooleanOrFalse(PrekXXX+getItem(HookBottomBtnMore.class).getPath());
+        ArrayList<String> items = new ArrayList<>();
+        if (qqPacketHelper){
+            items.add("QQPacketHelper");
+        }
+        if (sendFakeFile) {
+            items.add("假文件");
+        }
+        items.add("匿名化");
         new XPopup.Builder(fixCtx)
-            .asCenterList("", new String[]{"PacketHelper", "匿名化", "假文件"},
-                (position, text) -> {
-                    switch (position) {
-                        case 0:
-                            runOnUiThread(() -> ElementSender.createView(null, view.getContext(), ""));
-                            break;
-                        case 1:
-                            autoMosaicNameNT();
-                            break;
-                        case 2:
-                            try {
-                                runOnUiThread(() -> FakeFileSender.createView(view.getContext()));
-                            } catch (Exception e) {
-                                Toasts.error(view.getContext(), "请求失败");
-                            }
+            .hasShadowBg(false)
+            .atView(view)
+            .asAttachList(items.toArray(new String[0]),
+                    new int[]{},
+                    (position, text) -> {
+                        switch (text) {
+                            case "QQPacketHelper":
+                                runOnUiThread(() -> ElementSender.createView(null, view.getContext(), ""));
+                                break;
+                            case "匿名化":
+                                autoMosaicNameNT();
+                                break;
+                            case "假文件":
+                                try {
+                                    runOnUiThread(() -> FakeFileSender.createView(view.getContext()));
+                                } catch (Exception e) {
+                                    Toasts.error(view.getContext(), "请求失败");
+                                }
 
-                            break;
-                        case 3:
-                            break;
-                    }
-                })
+                                break;
+                        }
+                    })
             .show();
     }
 
@@ -194,7 +208,7 @@ public class HookBottomBtnRedPacket extends BaseSwitchFunctionHookItem {
                         }
                     });
         } catch (ClassNotFoundException e) {
-            Logger.e("Failed to hook target method: " + e, true);
+            Logger.e(this.getItemName(), e);
         }
     }
 }

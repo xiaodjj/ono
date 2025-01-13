@@ -4,7 +4,6 @@ import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
 import static moe.ono.common.CheckUtils.isInteger;
 
 import android.annotation.SuppressLint;
-import android.content.pm.ApplicationInfo;
 
 import androidx.annotation.NonNull;
 
@@ -19,11 +18,10 @@ import moe.ono.hooks.XHook;
 import moe.ono.hooks._base.BaseSwitchFunctionHookItem;
 import moe.ono.hooks._core.annotation.HookItem;
 import moe.ono.reflex.XMethod;
-import moe.ono.startup.HookBase;
 import moe.ono.util.Logger;
 
 
-@HookItem(path = "修复/拦截部分闪退", description = "QQ 版本 > 9.1.15 可不开启")
+@HookItem(path = "优化与修复/拦截部分闪退", description = "QQ 版本 > 9.1.15 可不开启")
 @SuppressLint("DiscouragedApi")
 public class QQCrashFixer extends BaseSwitchFunctionHookItem {
     public void fix(ClassLoader classLoader) {

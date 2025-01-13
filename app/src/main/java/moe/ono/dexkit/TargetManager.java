@@ -1,14 +1,20 @@
 package moe.ono.dexkit;
 
+import static moe.ono.config.ConfigManager.cGetBoolean;
+import static moe.ono.config.ConfigManager.cGetString;
+import static moe.ono.config.ConfigManager.cPutBoolean;
+import static moe.ono.config.ConfigManager.cPutString;
 import static moe.ono.constants.Constants.MethodCacheKey_AIOParam;
 import static moe.ono.constants.Constants.MethodCacheKey_InputRoot;
 import static moe.ono.constants.Constants.MethodCacheKey_MarkdownAIO;
+import static moe.ono.constants.Constants.MethodCacheKey_getBuddyName;
+import static moe.ono.constants.Constants.MethodCacheKey_getDiscussionMemberShowName;
+import static moe.ono.util.Initiator.loadClass;
+import static moe.ono.util.Utils.findMethodByName;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
-import android.widget.Toast;
 
 import org.luckypray.dexkit.DexKitBridge;
 import org.luckypray.dexkit.query.FindMethod;
@@ -20,79 +26,39 @@ import java.util.Map;
 
 import moe.ono.config.ConfigManager;
 import moe.ono.util.Logger;
-import moe.ono.util.SyncUtils;
 
 public class TargetManager {
     public static boolean isNeedFindTarget() {
-        return ConfigManager.getDefaultConfig().getBooleanOrDefault("isNeedFindTarget", true);
+        return cGetBoolean("isNeedFindTarget", true);
     }
 
     public static void setIsNeedFindTarget(boolean b) {
-        ConfigManager.getDefaultConfig().edit().putBoolean("isNeedFindTarget", b).apply();
+        cPutBoolean("isNeedFindTarget", b);
     }
 
     public static String getLastQQVersion() {
-        return ConfigManager.getDefaultConfig().getStringOrDefault("LastQQVersion", "");
+        return cGetString("LastQQVersion", "");
     }
 
     public static void setLastQQVersion(String version) {
-        ConfigManager.getDefaultConfig().edit().putString("LastQQVersion", version).apply();
+        cPutString("LastQQVersion", version);
     }
 
 
-    private static void findAIOParam(DexKitBridge bridge, ClassLoader hostClassLoader) {
+    private static void doFind(DexKitBridge bridge, ClassLoader hostClassLoader, FindMethod findMethod, String key) {
         Method targetMethod;
 
-        MethodData methodData = bridge.findMethod(FindMethod.create()
-                .matcher(MethodMatcher.create()
-                        .usingStrings("rootVMBuild")
-                )
-        ).single();
+        MethodData methodData = bridge.findMethod(findMethod).single();
 
         try {
             targetMethod = methodData.getMethodInstance(hostClassLoader);
             String methodSignature = targetMethod.getDeclaringClass().getName() + "#" + targetMethod.getName();
-            ConfigManager.getDefaultConfig().edit().putString(MethodCacheKey_AIOParam, methodSignature).apply();
+            cPutString(key, methodSignature);
         } catch (Exception e) {
-            Logger.e("Error finding method: " + e);
+            Logger.e(key, e);
         }
     }
 
-    public static void findInputRoot(DexKitBridge bridge, ClassLoader hostClassLoader) {
-        MethodData methodData = bridge.findMethod(FindMethod.create()
-                .matcher(MethodMatcher.create()
-                        .usingStrings("inputRoot.findViewById(R.id.send_btn)")
-                )
-        ).single();
-
-
-        try {
-            Method targetMethod = methodData.getMethodInstance(hostClassLoader);
-            String methodSignature = targetMethod.getDeclaringClass().getName() + "#" + targetMethod.getName();
-            ConfigManager.getDefaultConfig().edit().putString(MethodCacheKey_InputRoot, methodSignature).apply();
-        } catch (Exception e) {
-            Logger.e("Error finding method: " + e);
-        }
-    }
-
-    public static void findMarkdownAIO(DexKitBridge bridge, ClassLoader hostClassLoader) {
-        MethodData methodData = bridge.findMethod(FindMethod.create()
-                .matcher(MethodMatcher.create()
-                        .usingStrings("AIOMarkdownContentComponent")
-                        .usingStrings("bind status=")
-                        .paramCount(2)
-                )
-        ).single();
-
-        try {
-            Method targetMethod = methodData.getMethodInstance(hostClassLoader);
-            String methodSignature = targetMethod.getDeclaringClass().getName() + "#" + targetMethod.getName();
-            ConfigManager.getDefaultConfig().edit().putString(MethodCacheKey_MarkdownAIO, methodSignature).apply();
-        } catch (Exception e) {
-            Logger.e("Error finding method: " + e);
-        }
-
-    }
 
     public static void runMethodFinder(ApplicationInfo ai, ClassLoader cl, Activity activity, final OnTaskCompleteListener listener) {
         var ref = new Object() {
@@ -103,14 +69,45 @@ public class TargetManager {
         new Thread(() -> {
             DexKitExecutor executor = new DexKitExecutor(ai.sourceDir, cl);
 
-            executor.execute((bridge, classLoader) -> findAIOParam(bridge, cl));
-            ref.result = ref.result + "findAIOParam -> " + ConfigManager.getDefaultConfig().getString(MethodCacheKey_AIOParam, null);
+            executor.execute((bridge, classLoader) -> doFind(bridge, cl, FindMethod.create()
+                    .matcher(MethodMatcher.create()
+                            .usingStrings("rootVMBuild")
+                    )
+            , MethodCacheKey_AIOParam));
+            ref.result = ref.result + "-> " + cGetString(MethodCacheKey_AIOParam, null);
 
-            executor.execute((bridge, classLoader) -> findInputRoot(bridge, cl));
-            ref.result = ref.result + "\n\nfindInputRoot -> " + ConfigManager.getDefaultConfig().getString(MethodCacheKey_InputRoot, null);
+            executor.execute((bridge, classLoader) -> doFind(bridge, cl, FindMethod.create()
+                            .matcher(MethodMatcher.create()
+                                    .usingStrings("inputRoot.findViewById(R.id.send_btn)")
+                            )
+                    , MethodCacheKey_InputRoot));
+            ref.result = ref.result + "\n\n-> " + cGetString(MethodCacheKey_InputRoot, null);
 
-            executor.execute(TargetManager::findMarkdownAIO);
-            ref.result = ref.result + "\n\nfindMarkdownAIO -> " + ConfigManager.getDefaultConfig().getString(MethodCacheKey_MarkdownAIO, null);
+            executor.execute((bridge, classLoader) -> doFind(bridge, cl, FindMethod.create()
+                            .matcher(MethodMatcher.create()
+                                    .usingStrings("AIOMarkdownContentComponent")
+                                    .usingStrings("bind status=")
+                                    .paramCount(2)
+                            )
+                    , MethodCacheKey_MarkdownAIO));
+            ref.result = ref.result + "\n\n-> " + cGetString(MethodCacheKey_MarkdownAIO, null);
+
+
+            executor.execute((bridge, classLoader) -> doFind(bridge, cl, FindMethod.create()
+                            .matcher(MethodMatcher.create()
+                                    .usingStrings("getBuddyName()")
+                            )
+                    , MethodCacheKey_getBuddyName));
+            ref.result = ref.result + "\n\n-> " + cGetString(MethodCacheKey_getBuddyName, null);
+
+
+            executor.execute((bridge, classLoader) -> doFind(bridge, cl, FindMethod.create()
+                            .matcher(MethodMatcher.create()
+                                    .usingStrings("getDiscussionMemberShowName uin is null")
+                            )
+                    , MethodCacheKey_getDiscussionMemberShowName));
+            ref.result = ref.result + "\n\n-> " + cGetString(MethodCacheKey_getDiscussionMemberShowName, null);
+
 
             ref.result = ref.result + "\n\n\n... 搜索结果已缓存";
 
@@ -123,7 +120,7 @@ public class TargetManager {
     }
 
     public static void removeAllMethodSignature() {
-        ConfigManager defaultConfig = ConfigManager.getDefaultConfig();
+        ConfigManager defaultConfig = ConfigManager.getCache();
         Map<String, ?> allEntries = defaultConfig.getAll();
         SharedPreferences.Editor editor = defaultConfig.edit();
 
@@ -134,6 +131,21 @@ public class TargetManager {
         }
         editor.apply();
     }
+
+    public static Method getMethod(String key) {
+        String cachedMethodSignature = cGetString(key, null);
+
+        try {
+            String[] parts = cachedMethodSignature.split("#");
+            String className = parts[0];
+            String methodName = parts[1];
+            Class<?> clazz = loadClass(className);
+            return findMethodByName(clazz, methodName);
+        } catch (Exception e) {
+            Logger.e(key, e);
+        }
+        return null;
+    };
 
     public interface OnTaskCompleteListener {
         void onTaskComplete(String result);

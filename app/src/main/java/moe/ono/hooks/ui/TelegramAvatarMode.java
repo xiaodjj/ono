@@ -1,6 +1,8 @@
 package moe.ono.hooks.ui;
 
 import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
+import static de.robv.android.xposed.XposedHelpers.findMethodExact;
+import static moe.ono.util.Initiator.loadClass;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -14,21 +16,22 @@ import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
 
+import java.lang.reflect.Method;
+
 import de.robv.android.xposed.XC_MethodHook;
+import moe.ono.hooks._base.BaseSwitchFunctionHookItem;
+import moe.ono.hooks._core.annotation.HookItem;
 import moe.ono.startup.HookBase;
 import moe.ono.util.Logger;
 
 @SuppressLint("DiscouragedApi")
-public class TelegramAvatarMode implements HookBase {
-    public static String method_name = "Telegram模式";
-    public static String method_description = "隐藏自己的头像";
-
-    public void hideSelfAvatar(ClassLoader classLoader) {
-        findAndHookMethod("com.tencent.mobileqq.aio.msglist.holder.component.avatar.AIOAvatarContentComponent$avatarContainer$2",
-                classLoader, "invoke", new XC_MethodHook() {
+@HookItem(path = "聊天与消息/Telegram 模式", description = "目前只能做到隐藏自己的头像")
+public class TelegramAvatarMode extends BaseSwitchFunctionHookItem {
+    public void hideSelfAvatar(ClassLoader classLoader) throws ClassNotFoundException {
+        Method m = findMethodExact(loadClass("com.tencent.mobileqq.aio.msglist.holder.component.avatar.AIOAvatarContentComponent$avatarContainer$2"), "invoke");
+        hookAfter(m, new HookAction() {
             @Override
-            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                super.afterHookedMethod(param);
+            public void call(XC_MethodHook.MethodHookParam param) {
                 RelativeLayout relativeLayout = (RelativeLayout) param.getResult();
                 ImageView view = (ImageView) relativeLayout.getChildAt(0);
 
@@ -70,24 +73,8 @@ public class TelegramAvatarMode implements HookBase {
 
     }
 
-
     @Override
-    public void init(@NonNull ClassLoader cl, @NonNull ApplicationInfo ai) {
-        hideSelfAvatar(cl);
-    }
-
-    @Override
-    public String getName() {
-        return method_name;
-    }
-
-    @Override
-    public String getDescription() {
-        return method_description;
-    }
-
-    @Override
-    public Boolean isEnable() {
-        return null;
+    public void load(@NonNull ClassLoader classLoader) throws Throwable {
+        hideSelfAvatar(classLoader);
     }
 }

@@ -25,7 +25,7 @@ public class ContextUtils {
                 }
             }
         } catch (Exception e) {
-            Logger.e(e, true);
+            Logger.e(e);
         }
         return null;
     }

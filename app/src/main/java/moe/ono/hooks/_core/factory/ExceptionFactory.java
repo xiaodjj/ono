@@ -50,10 +50,8 @@ public class ExceptionFactory {
         }
         exceptionsList.add(0, throwable);
         exceptionMap.put(item, exceptionsList);
-        if (BuildConfig.DEBUG) {
-            XposedBridge.log(throwable);
-            LogUtils.addError(item.getItemName(), throwable);
-        }
+        XposedBridge.log(throwable);
+        LogUtils.addError("item_" + item.getItemName(), throwable);
 
     }
 

@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface HookItem {
     String path();          // 功能路径
-    String description();    // 功能描述
+    String description() default "";    // 功能描述
 }
 

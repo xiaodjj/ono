@@ -5,6 +5,9 @@ import android.content.SharedPreferences;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.TypeReference;
+
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
@@ -113,6 +116,60 @@ public abstract class ConfigManager implements SharedPreferences, SharedPreferen
         return getObject(key);
     }
 
+    public static void dPutBoolean(@NonNull String key, Boolean b) {
+        getDefaultConfig().edit().putBoolean(key, b).apply();
+    }
+
+    public static void dPutString(@NonNull String key, String s) {
+        getDefaultConfig().edit().putString(key, s).apply();
+    }
+
+    public static void dPutInt(@NonNull String key, int i) {
+        getDefaultConfig().edit().putInt(key, i).apply();
+    }
+
+    public static boolean dGetBoolean(@NonNull String key) {
+        return getDefaultConfig().getBooleanOrFalse(key);
+    }
+
+    public static String dGetString(@NonNull String key, String d) {
+        return getDefaultConfig().getStringOrDefault(key, d);
+    }
+
+    public static int dGetInt(@NonNull String key, int d) {
+        return getDefaultConfig().getIntOrDefault(key, d);
+    }
+
+
+
+
+    public static void cPutBoolean(@NonNull String key, Boolean b) {
+        getCache().edit().putBoolean(key, b).apply();
+    }
+
+    public static void cPutString(@NonNull String key, String s) {
+        getCache().edit().putString(key, s).apply();
+    }
+
+    public static void cPutInt(@NonNull String key, int i) {
+        getCache().edit().putInt(key, i).apply();
+    }
+
+    public static boolean cGetBoolean(@NonNull String key) {
+        return getCache().getBooleanOrFalse(key);
+    }
+    public static boolean cGetBoolean(@NonNull String key, boolean d) {
+        return getCache().getBooleanOrDefault(key, d);
+    }
+
+    public static String cGetString(@NonNull String key, String d) {
+        return getCache().getStringOrDefault(key, d);
+    }
+
+    public static int cGetInt(@NonNull String key, int d) {
+        return getCache().getIntOrDefault(key, d);
+    }
+
     public boolean getBooleanOrFalse(@NonNull String key) {
         return getBooleanOrDefault(key, false);
     }
@@ -140,6 +197,14 @@ public abstract class ConfigManager implements SharedPreferences, SharedPreferen
 
     @Nullable
     public abstract Object getObject(@NonNull String key);
+
+    public <T> T cGetObject(String key, TypeReference<T> type) {
+        String data = getCache().getString(key);
+        if (data == null || data.isEmpty()) {
+            return null;
+        }
+        return JSON.parseObject(data, type);
+    }
 
     @Nullable
     public byte[] getBytes(@NonNull String key) {
