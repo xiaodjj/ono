@@ -88,9 +88,12 @@ public class LogUtils {
 
 
     private static void addLog(String fileName, String Description, Object content, boolean isError) {
-        if (!ConfigManager.getDefaultConfig().getBooleanOrFalse(PrekEnableLog)){
-            return;
-        }
+        try {
+            if (!ConfigManager.getDefaultConfig().getBooleanOrFalse(PrekEnableLog)){
+                return;
+            }
+        } catch (Exception ignored) {}
+
         String path = (isError ? getErrorLogDirectory() : getRunLogDirectory()) + fileName + ".log";
         StringBuilder stringBuffer = new StringBuilder(getTime());
         stringBuffer.append("\n").append(Description);

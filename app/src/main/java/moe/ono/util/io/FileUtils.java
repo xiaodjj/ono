@@ -202,20 +202,19 @@ public class FileUtils {
      * @param isAppend 是否追写 不是的话会覆盖
      */
     public static void writeTextToFile(String path, String content, boolean isAppend) {
-        File file = new File(path);
         try {
-            // 先创建文件夹
-            if (!Objects.requireNonNull(file.getParentFile()).exists()) file.getParentFile().mkdirs();
-            // 再创建文件 FileOutputStream会自动创建文件但是不能创建多级目录
-            if (!file.exists()) file.createNewFile();
-        } catch (IOException e) {
-            Logger.e("FileUtils", e);
-        }
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, isAppend), StandardCharsets.UTF_8))) {
-            writer.write(content);
-        } catch (IOException e) {
-            Logger.e("FileUtils", e);
-        }
+            File file = new File(path);
+            try {
+                // 先创建文件夹
+                if (!Objects.requireNonNull(file.getParentFile()).exists()) file.getParentFile().mkdirs();
+                // 再创建文件 FileOutputStream会自动创建文件但是不能创建多级目录
+                if (!file.exists()) file.createNewFile();
+            } catch (IOException ignored) {}
+            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, isAppend), StandardCharsets.UTF_8))) {
+                writer.write(content);
+            } catch (IOException ignored) {}
+        } catch (Exception ignored) {}
+
     }
 
     public static void copyFile(String sourceFile, String targetPath) throws IOException {
