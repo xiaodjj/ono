@@ -165,7 +165,7 @@ public class NtGrayTipHelper {
         public NtGrayTipJsonBuilder() {
         }
 
-        private ArrayList<Item> mItems = new ArrayList<>(4);
+        private final ArrayList<Item> mItems = new ArrayList<>(4);
 
         public NtGrayTipJsonBuilder appendText(@NonNull String text) {
             mItems.add(new TextItem(text));

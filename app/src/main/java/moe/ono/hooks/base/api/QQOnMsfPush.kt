@@ -25,22 +25,14 @@ class QQOnMsfPush : ApiHookItem() {
             .methodName("onMsfPush")
             .first()
 
-        XposedBridge.hookMethod(onMSFPushMethod, object : XC_MethodHook() {
-            @Throws(Throwable::class)
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                val cmd = param.args[0] as String
-                val protoBuf = param.args[1] as ByteArray
-                if (cmd == "trpc.msg.register_proxy.RegisterProxy.InfoSyncPush") {
-                    handleInfoSyncPush(protoBuf, param)
-                } else if (cmd == "trpc.msg.olpush.OlPushService.MsgPush") {
-                    handleMsgPush(protoBuf, param)
-                }
-                super.beforeHookedMethod(param)
-            }
 
-            @Throws(Throwable::class)
-            override fun afterHookedMethod(param: MethodHookParam) {
-                super.afterHookedMethod(param)
+        hookBefore(onMSFPushMethod, { param ->
+            val cmd = param.args[0] as String
+            val protoBuf = param.args[1] as ByteArray
+            if (cmd == "trpc.msg.register_proxy.RegisterProxy.InfoSyncPush") {
+                handleInfoSyncPush(protoBuf, param)
+            } else if (cmd == "trpc.msg.olpush.OlPushService.MsgPush") {
+                handleMsgPush(protoBuf, param)
             }
         })
     }
@@ -79,9 +71,10 @@ class QQOnMsfPush : ApiHookItem() {
 
 
         when (msgType) {
-            82 -> {
-                DoNotBrushMeOff().filter(msgPush, param)
-                BlockBadlanguage().filter(msgPush, param)
+            // 82 - Group | 166 - C2C
+            82, 166 -> {
+                BlockBadlanguage().filter(param)
+                DoNotBrushMeOff().filter(param)
             }
 
             732 -> when (msgSubType) {

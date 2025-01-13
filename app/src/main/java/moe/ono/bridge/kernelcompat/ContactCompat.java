@@ -34,13 +34,13 @@ public final class ContactCompat implements Serializable {
     private static long serialVersionUID;
 
     public ContactCompat() {
-        this.serialVersionUID = 1L;
+        serialVersionUID = 1L;
         this.peerUid = "";
         this.guildId = "";
     }
 
     public ContactCompat(int chatType, String peerUid, String guildId) {
-        this.serialVersionUID = 1L;
+        serialVersionUID = 1L;
         this.chatType = chatType;
         this.peerUid = peerUid;
         this.guildId = guildId;
@@ -64,21 +64,13 @@ public final class ContactCompat implements Serializable {
 
     public static ContactCompat fromKernelObject(Serializable kernelObject) {
         String className = kernelObject.getClass().getName();
-        try {
-            if (className.equals("com.tencent.qqnt.kernel.nativeinterface.Contact")) {
-                Contact contact = (Contact) kernelObject;
-                return new ContactCompat(contact.getChatType(), contact.getPeerUid(), contact.getGuildId());
-            }
-        } finally {
-            // prevent R8 const-class optimization
+        if (className.equals("com.tencent.qqnt.kernel.nativeinterface.Contact")) {
+            Contact contact = (Contact) kernelObject;
+            return new ContactCompat(contact.getChatType(), contact.getPeerUid(), contact.getGuildId());
         }
-        try {
-            if (className.equals("com.tencent.qqnt.kernelpublic.nativeinterface.Contact")) {
-                com.tencent.qqnt.kernelpublic.nativeinterface.Contact contact = (com.tencent.qqnt.kernelpublic.nativeinterface.Contact) kernelObject;
-                return new ContactCompat(contact.getChatType(), contact.getPeerUid(), contact.getGuildId());
-            }
-        } finally {
-            // prevent R8 const-class optimization
+        if (className.equals("com.tencent.qqnt.kernelpublic.nativeinterface.Contact")) {
+            com.tencent.qqnt.kernelpublic.nativeinterface.Contact contact = (com.tencent.qqnt.kernelpublic.nativeinterface.Contact) kernelObject;
+            return new ContactCompat(contact.getChatType(), contact.getPeerUid(), contact.getGuildId());
         }
         KernelObjectHelper.throwKernelObjectNotSupported(className);
         return null;

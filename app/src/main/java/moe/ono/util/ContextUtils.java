@@ -11,7 +11,7 @@ public class ContextUtils {
     public static Activity getCurrentActivity() {
         try {
             Class<?> activityThreadClass = Class.forName("android.app.ActivityThread", false, Application.class.getClassLoader());
-            Object activityThread = activityThreadClass.getMethod("currentActivityThread", new Class[0]).invoke(null, new Object[0]);
+            Object activityThread = activityThreadClass.getMethod("currentActivityThread").invoke(null);
             Field activitiesField = activityThreadClass.getDeclaredField("mActivities");
             activitiesField.setAccessible(true);
             for (Object activityRecord : ((Map) activitiesField.get(activityThread)).values()) {

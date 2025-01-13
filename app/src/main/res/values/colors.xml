@@ -13,6 +13,8 @@
     <color name="mask_bg">#EDEDED</color>
     <color name="card_bg">#FFFFFF</color>
 
+    <color name="bg">#FFFFFF</color>
+
     <!-- QQPurify Themes -->
     <color name="theme_color_blp">#fb7299</color>
     <color name="theme_color_gol">#ffbb33</color>

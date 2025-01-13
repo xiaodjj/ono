@@ -37,7 +37,7 @@ class HookItemLoader {
     private fun loadSwitchFunctionConfig() {
         val allHookItems = HookItemFactory.getAllSwitchFunctionItemList()
         allHookItems.forEach { hookItem ->
-            hookItem.isEnabled = ConfigManager.getDefaultConfig().getBooleanOrFalse("setting_switch_value_${hookItem.path}");
+            hookItem.isEnabled = ConfigManager.getDefaultConfig().getBooleanOrFalse("setting_switch_value_${hookItem.path}")
         }
     }
 }

@@ -99,18 +99,17 @@ public class MethodUtils extends BaseFinder<Method> {
 
     @Override
     public String buildSign() {
-        StringBuilder build = new StringBuilder();
-        build.append("method:")
-                .append(fromClassName)
-                .append(" ")
-                .append(returnType)
-                .append(" ")
-                .append(methodName)
-                .append("(")
-                .append(paramCount)
-                .append(Arrays.toString(methodParams))
-                .append(")");
-        return build.toString();
+        String build = "method:" +
+                fromClassName +
+                " " +
+                returnType +
+                " " +
+                methodName +
+                "(" +
+                paramCount +
+                Arrays.toString(methodParams) +
+                ")";
+        return build;
     }
 
     private <T> T tryCall(Method method, Object object, Object... args) {

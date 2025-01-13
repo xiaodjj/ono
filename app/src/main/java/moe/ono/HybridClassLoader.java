@@ -31,7 +31,7 @@ import java.net.URL;
 public class HybridClassLoader extends ClassLoader {
 
     private static String sObfuscatedPackageName = null;
-    private static String sProbeLsposedNativeApiClassName = "Lorg/lsposed/lspd/nativebridge/NativeAPI;";
+    private static final String sProbeLsposedNativeApiClassName = "Lorg/lsposed/lspd/nativebridge/NativeAPI;";
     private static final ClassLoader sBootClassLoader = Context.class.getClassLoader();
     private final ClassLoader clPreload;
     private final ClassLoader clBase;
@@ -117,9 +117,7 @@ public class HybridClassLoader extends ClassLoader {
         if (sObfuscatedPackageName == null) {
             return "de.robv.android.xposed.XposedBridge";
         } else {
-            var sb = new StringBuilder(sObfuscatedPackageName);
-            sb.append(".XposedBridge");
-            return sb.toString();
+            return sObfuscatedPackageName + ".XposedBridge";
         }
     }
 }

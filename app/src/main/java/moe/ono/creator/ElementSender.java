@@ -97,11 +97,11 @@ public class ElementSender extends BottomPopupView {
     private static Dialog elem_dialog = null;
     private static View decorView;
     private boolean isUpdatingText = false;  // 标志位，用于防止死循环
-    private int MAX_JSON_LENGTH = 5000;
+    private final int MAX_JSON_LENGTH = 5000;
     private static final long HIGHLIGHT_DELAY = 0; // 延迟高亮时间（ms）
-    private Handler handler = new Handler(Looper.getMainLooper());
+    private final Handler handler = new Handler(Looper.getMainLooper());
     private Runnable highlightRunnable;
-    private int previousLength = 0;
+    private final int previousLength = 0;
 
 
 

@@ -16,10 +16,10 @@ import moe.ono.R;
 
 public class RadiusCardView extends CardView {
 
-    private float tlRadiu;
-    private float trRadiu;
-    private float brRadiu;
-    private float blRadiu;
+    private final float tlRadiu;
+    private final float trRadiu;
+    private final float brRadiu;
+    private final float blRadiu;
 
     public RadiusCardView(Context context) {
         this(context, null);

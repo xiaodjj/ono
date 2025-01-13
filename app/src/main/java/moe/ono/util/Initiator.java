@@ -154,7 +154,7 @@ public class Initiator {
         if (clazz != null) {
             return clazz;
         }
-        if (index != null && index.length > 0) {
+        if (index != null) {
             for (int i : index) {
                 Class<?> cref = load(className + "$" + i);
                 if (cref != null) {
@@ -286,10 +286,7 @@ public class Initiator {
                 break;
             }
         }
-        if (!hasStaticInstance) {
-            return false;
-        }
-        return true;
+        return hasStaticInstance;
     }
 
     private static Class<?> skNtStartupDirector = null;

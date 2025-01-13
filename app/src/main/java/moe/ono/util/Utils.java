@@ -39,8 +39,7 @@ public class Utils {
 
     private static List<View> getAllChildViews(View view) {
         List<View> allChildren = new ArrayList<>();
-        if (view instanceof ViewGroup) {
-            ViewGroup vp = (ViewGroup) view;
+        if (view instanceof ViewGroup vp) {
             for (int i = 0; i < vp.getChildCount(); i++) {
                 View viewChild = vp.getChildAt(i);
                 allChildren.add(viewChild);

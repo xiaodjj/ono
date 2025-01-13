@@ -301,14 +301,12 @@ public class GuessSurname extends BaseSwitchFunctionHookItem {
     }
 
     private static void doSetupDialogViewFont(View view, int size) {
-        if (view instanceof ViewGroup) {
-            ViewGroup parent = (ViewGroup) view;
+        if (view instanceof ViewGroup parent) {
             int count = parent.getChildCount();
             for (int i = 0; i < count; i++) {
                 doSetupDialogViewFont(parent.getChildAt(i), size);
             }
-        } else if (view instanceof TextView) {
-            TextView textview = (TextView) view;
+        } else if (view instanceof TextView textview) {
             String text = textview.getText().toString();
 
             textview.setTextIsSelectable(true);

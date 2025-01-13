@@ -134,23 +134,6 @@ open class OUOSettingActivity : BaseActivity() {
         }
 
 
-        if (isInHostProcess) {
-            val isThemeLightMode = resources.getBoolean(R.bool.is_not_night_mode)
-            if (isThemeLightMode) {
-                // QQ 8.9.78(4548)+
-                // We need to tell system we are using a light title bar and we want a dark status bar text
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    val insetsController = window.decorView.windowInsetsController
-                    val flags = WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
-                            WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
-                    insetsController?.setSystemBarsAppearance(flags, flags)
-                } else {
-                    window.decorView.systemUiVisibility = window.decorView.systemUiVisibility or
-                            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                }
-            }
-        }
-
         if (title != null) {
             mAppToolBar.title = title
             mAppToolBar.menu.clear()
@@ -308,6 +291,7 @@ open class OUOSettingActivity : BaseActivity() {
     private fun setHyperBackground() {
         val contentView = findViewById<ViewGroup>(android.R.id.content)
 
+        contentView.setBackgroundColor(getColor(R.color.bg))
         mBgEffectView = LayoutInflater.from(this).inflate(R.layout.layout_effect_bg, contentView, false)
         contentView.addView(mBgEffectView, 0)
         mBgEffectView = contentView.findViewById(R.id.bgEffectView)

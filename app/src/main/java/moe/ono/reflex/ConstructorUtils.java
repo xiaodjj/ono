@@ -91,13 +91,12 @@ public class ConstructorUtils extends BaseFinder<Constructor<?>> {
 
     @Override
     public String buildSign() {
-        StringBuilder signBuilder = new StringBuilder()
-                .append("constructor:")
-                .append(fromClassName)
-                .append(" ")
-                .append(paramCount)
-                .append(" ")
-                .append(Arrays.toString(paramTypes));
-        return signBuilder.toString();
+        String signBuilder = "constructor:" +
+                fromClassName +
+                " " +
+                paramCount +
+                " " +
+                Arrays.toString(paramTypes);
+        return signBuilder;
     }
 }

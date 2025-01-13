@@ -13,10 +13,11 @@ import top.artmoe.inao.entries.MsgPushOuterClass
 class BlockBadlanguage : BaseSwitchFunctionHookItem() {
     override fun load(classLoader: ClassLoader) {}
 
-    fun filter(msgPush: MsgPushOuterClass.MsgPush, param: XC_MethodHook.MethodHookParam) {
+    fun filter(param: XC_MethodHook.MethodHookParam) {
         if (!getItem(this.javaClass).isEnabled) {
             return
         }
+        val msgPush = MsgPushOuterClass.MsgPush.parseFrom(param.args[1] as ByteArray)
 
         kotlin.runCatching {
             val oldMessage = msgPush.qqMessage
@@ -59,27 +60,19 @@ class BlockBadlanguage : BaseSwitchFunctionHookItem() {
     }
     private fun getReplacement(text: String?): String? {
         val badWords = listOf("你妈四了", "你妈死了", "密码死了", "你妈比", "你妈逼", "你码四了", "nmsl", "操你妈", "你妈了个", "操腻妈")
-
         return text?.trim()?.let { originalText ->
             if (badWords.any { originalText.contains(it) }) {
-
                 var modifiedText = originalText
-
                 modifiedText = modifiedText.replace("nmsl", "wmsl")
                 modifiedText = modifiedText.replace(Regex("操.*妈"), "操我妈")
-                modifiedText = modifiedText.replace(Regex("你妈"), "我妈")
-
-
+                modifiedText = modifiedText.replace(Regex("你妈"), "我妈") // Replace "你妈" with "我妈" here
 
                 val rules = listOf(
                     Pair(Regex("[你腻妮泥密]"), "我"),
                 )
 
                 rules.forEach { (pattern, replacement) ->
-                    val matchResult = pattern.find(modifiedText)
-                    if (matchResult != null) {
-                        modifiedText = modifiedText.replace(matchResult.value, matchResult.value.replace(matchResult.value, replacement))
-                    }
+                    modifiedText = modifiedText.replace(pattern, replacement)
                 }
 
                 modifiedText

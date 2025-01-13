@@ -13,10 +13,13 @@ import top.artmoe.inao.entries.MsgPushOuterClass
 class DoNotBrushMeOff : BaseSwitchFunctionHookItem() {
     override fun load(classLoader: ClassLoader) {}
 
-    fun filter(msgPush: MsgPushOuterClass.MsgPush, param: XC_MethodHook.MethodHookParam) {
+    fun filter(param: XC_MethodHook.MethodHookParam) {
         if (!getItem(this.javaClass).isEnabled){
             return
         }
+
+        val msgPush = MsgPushOuterClass.MsgPush.parseFrom(param.args[1] as ByteArray)
+
         kotlin.runCatching {
             val oldMessage = msgPush.qqMessage
 
@@ -27,7 +30,8 @@ class DoNotBrushMeOff : BaseSwitchFunctionHookItem() {
                             if (msgContent.hasTextMsg()) {
                                 val originalText = msgContent.textMsg.text
                                 val replacementText = getReplacement(originalText)
-                                if (replacementText != null) {
+                                if (replacementText != null)
+                                {
                                     setMsgContent(
                                         index,
                                         msgContent.toBuilder().apply {

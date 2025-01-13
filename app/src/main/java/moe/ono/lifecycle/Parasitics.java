@@ -56,7 +56,7 @@ public class Parasitics {
     }
 
     private static boolean __stub_hooked = false;
-    private static long sResInjectBeginTime = 0;
+    private static final long sResInjectBeginTime = 0;
     private static long sResInjectEndTime = 0;
     private static long sActStubHookBeginTime = 0;
     private static long sActStubHookEndTime = 0;

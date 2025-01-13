@@ -145,7 +145,7 @@ public class TargetManager {
             Logger.e(key, e);
         }
         return null;
-    };
+    }
 
     public interface OnTaskCompleteListener {
         void onTaskComplete(String result);

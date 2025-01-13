@@ -116,15 +116,14 @@ public class FieldUtils extends BaseFinder<Field> {
 
     @Override
     public String buildSign() {
-        StringBuilder signBuilder = new StringBuilder();
         //构建签名缓存
-        signBuilder.append("field:")
-                .append(fromClassName)
-                .append(" ")
-                .append(fieldType)
-                .append(" ")
-                .append(fieldName);
-        return signBuilder.toString();
+        String signBuilder = "field:" +
+                fromClassName +
+                " " +
+                fieldType +
+                " " +
+                fieldName;
+        return signBuilder;
     }
 
     private <T> T tryGetFieldValue(Field field, Object object) {
