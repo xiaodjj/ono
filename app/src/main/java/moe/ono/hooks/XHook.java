@@ -1,5 +1,8 @@
 package moe.ono.hooks;
 
+import static moe.ono.constants.Constants.PrekCfgXXX;
+import static moe.ono.hooks._core.factory.HookItemFactory.getItem;
+
 import androidx.annotation.NonNull;
 
 import java.lang.reflect.Method;
@@ -7,6 +10,8 @@ import java.util.Objects;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
+import moe.ono.config.ConfigManager;
+import moe.ono.hooks._base.BaseSwitchFunctionHookItem;
 
 public class XHook {
 
@@ -68,5 +73,11 @@ public class XHook {
                                   final @NonNull BeforeHookedMethod beforeHookedMethod) {
         hookBefore(method, 50, beforeHookedMethod);
     }
-    
+
+    public static void hookBefore(final @NonNull BaseSwitchFunctionHookItem baseSwitchFunctionHookItem, final @NonNull Method method,
+                                  final @NonNull BeforeHookedMethod beforeHookedMethod) {
+        if (baseSwitchFunctionHookItem.isEnabled()) {
+            hookBefore(method, ConfigManager.dGetInt(PrekCfgXXX+"hook_priority",50), beforeHookedMethod);
+        }
+    }
 }

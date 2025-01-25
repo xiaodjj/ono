@@ -26,9 +26,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import de.robv.android.xposed.XposedBridge;
 
 public class Utils {
     private static Handler sHandler;
@@ -84,6 +87,16 @@ public class Utils {
 
         return null;
     }
+
+    public static void printStackTrace() {
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        Logger.e("---------------------- [Stack Trace] ----------------------");
+        for (StackTraceElement element : stackTrace) {
+            Logger.d("    at " + element.toString());
+        }
+        Logger.e("^---------------------- over ----------------------^");
+    }
+
 
     public static void printIntentExtras(String TAG, Intent intent) {
         if (intent == null) {

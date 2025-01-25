@@ -49,9 +49,6 @@
     kotlinx.serialization.KSerializer serializer(...);
 }
 
-# 保持 ByteBuddy 相关的所有类和成员
--keep class net.bytebuddy.** { *; }
-
 # 保持 Xposed API 相关的类
 -keep class android.view.animation.PathInterpolator { *; }
 
@@ -70,10 +67,11 @@
     public static ** requireNonNull(...);
 }
 
-# 移除 Android 日志方法
--assumenosideeffects class android.util.Log {
-    public static int v(...);
-    public static int d(...);
+-keep class com.android.dx.** {
+    *;
+}
+-keep class net.bytebuddy.** {
+    *;
 }
 
 -keep class com.google.protobuf.**
@@ -81,6 +79,7 @@
 -keepclassmembers public class * extends com.google.protobuf.MessageLite {*;}
 -keepclassmembers public class * extends com.google.protobuf.MessageOrBuilder {*;}
 
+-keepattributes *Annotation*
 
 -dontwarn javax.**
 -dontwarn java.awt.**
