@@ -1,10 +1,14 @@
 package moe.ono.reflex;
 
+import static moe.ono.util.Initiator.loadClass;
+
 import android.util.Log;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 import moe.ono.dexkit.DexMethodDescriptor;
 import moe.ono.reflex.base.BaseFinder;
@@ -134,5 +138,44 @@ public class MethodUtils extends BaseFinder<Method> {
     public <T> T callLast(Object object, Object... args) {
         Method method = last();
         return tryCall(method, object, args);
+    }
+
+    private static final HashMap<String, Method> MethodCache = new HashMap<>();
+
+    public static Method findMethod(String clazz, String methodName, Class<?> returnType, Class<?>[] paramTypes) throws ClassNotFoundException {
+        return findMethod(loadClass(clazz), methodName, returnType, paramTypes);
+    }
+
+    public static Method findMethod(Class<?> clazz, String methodName, Class<?> returnType, Class<?>[] paramTypes) {
+        if (clazz == null) return null;
+        StringBuilder builder = new StringBuilder();
+        builder.append(clazz.getName()).append(".").append(methodName).append("(");
+        for (Class<?> clz : paramTypes) builder.append(clz.getName()).append(";");
+        builder.append(")").append(returnType.getName());
+        String SignText = builder.toString();
+        if (MethodCache.containsKey(SignText)) return MethodCache.get(SignText);
+
+        Class<?> Current_Find = clazz;
+        while (Current_Find != null) {
+            Loop:
+            for (Method method : Current_Find.getDeclaredMethods()) {
+                if ((method.getName().equals(methodName) || methodName == null) && method.getReturnType().equals(returnType)) {
+                    Class<?>[] params = method.getParameterTypes();
+                    if (params.length == paramTypes.length) {
+                        for (int i = 0; i < params.length; i++) {
+                            if (!Objects.equals(params[i], paramTypes[i])) continue Loop;
+                        }
+                        MethodCache.put(SignText, method);
+                        method.setAccessible(true);
+                        return method;
+                    }
+
+                }
+            }
+            Current_Find = Current_Find.getSuperclass();
+        }
+
+
+        return null;
     }
 }

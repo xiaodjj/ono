@@ -190,7 +190,6 @@ dependencies {
     }
 
     implementation(libs.kotlinx.io.jvm)
-    implementation(projects.libs.ui.xView)
 
     implementation(libs.dexkit)
     compileOnly(projects.libs.stub.qqStub)
@@ -229,11 +228,22 @@ dependencies {
     implementation(libs.dev.appcompat)
     implementation(libs.recyclerview)
 
+    implementation(libs.material.dialogs.core)
+    implementation(libs.material.dialogs.input)
+
     // Preference
     implementation(libs.preference)
 
     // fastjson2
     implementation(libs.fastjson2)
 
+    // xView
+    implementation(projects.libs.ui.xView)
 
+
+    implementation(libs.glide)
+
+    implementation(libs.byte.buddy)
+
+    implementation(libs.dalvik.dx)
 }

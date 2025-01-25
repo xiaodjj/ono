@@ -82,5 +82,16 @@
 -keepclassmembers public class * extends com.google.protobuf.MessageOrBuilder {*;}
 
 
+-dontwarn javax.**
+-dontwarn java.awt.**
+-dontwarn org.apache.bsf.*
+
+# ByteBuddy混淆
+-dontwarn com.sun.jna.**
+-dontwarn edu.umd.cs.findbugs.annotations.**
+-dontwarn java.lang.instrument.**
+
+-keepattributes LineNumberTable,SourceFile
+
 -dontoptimize
 -dontobfuscate

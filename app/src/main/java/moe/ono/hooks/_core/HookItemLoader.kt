@@ -1,7 +1,10 @@
 package moe.ono.hooks._core
 
 import moe.ono.config.ConfigManager
+import moe.ono.constants.Constants.PrekClickableXXX
+import moe.ono.constants.Constants.PrekXXX
 import moe.ono.hooks._base.ApiHookItem
+import moe.ono.hooks._base.BaseClickableFunctionHookItem
 import moe.ono.hooks._base.BaseSwitchFunctionHookItem
 import moe.ono.hooks._core.factory.HookItemFactory
 import moe.ono.util.Logger
@@ -12,15 +15,24 @@ class HookItemLoader {
      * 加载并判断哪些需要加载
      */
     fun loadHookItem(process: Int) {
-        loadSwitchFunctionConfig()
-
         val allHookItems = HookItemFactory.getAllItemList()
         allHookItems.forEach { hookItem ->
             val path = hookItem.path
-            if (hookItem is BaseSwitchFunctionHookItem && hookItem.isEnabled && process == hookItem.targetProcess) {
-                Logger.i("[BaseSwitchFunctionHookItem] Initializing $path...")
-                hookItem.startLoad()
-            } else {
+            if (hookItem is BaseSwitchFunctionHookItem) {
+                hookItem.isEnabled = ConfigManager.getDefaultConfig().getBooleanOrFalse("$PrekXXX${hookItem.path}")
+                if (hookItem.isEnabled && process == hookItem.targetProcess) {
+                    Logger.i("[BaseSwitchFunctionHookItem] Initializing $path...")
+                    hookItem.startLoad()
+                }
+            }
+            else if (hookItem is BaseClickableFunctionHookItem) {
+                hookItem.isEnabled = ConfigManager.getDefaultConfig().getBooleanOrFalse("$PrekClickableXXX${hookItem.path}")
+                if (hookItem.isEnabled && process == hookItem.targetProcess) {
+                    Logger.i("[BaseClickableFunctionHookItem] Initializing $path...")
+                    hookItem.startLoad()
+                }
+            }
+            else {
                 if (hookItem is ApiHookItem && process == hookItem.targetProcess){
                     Logger.i("[API] Initializing $path...")
                     hookItem.startLoad()
@@ -31,13 +43,4 @@ class HookItemLoader {
         }
     }
 
-    /**
-     * 加载SwitchFunction的配置
-     */
-    private fun loadSwitchFunctionConfig() {
-        val allHookItems = HookItemFactory.getAllSwitchFunctionItemList()
-        allHookItems.forEach { hookItem ->
-            hookItem.isEnabled = ConfigManager.getDefaultConfig().getBooleanOrFalse("setting_switch_value_${hookItem.path}")
-        }
-    }
 }

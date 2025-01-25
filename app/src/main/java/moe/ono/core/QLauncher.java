@@ -20,20 +20,18 @@ import androidx.annotation.NonNull;
 
 import com.lxj.xpopup.XPopup;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import moe.ono.R;
+import moe.ono.config.CacheConfig;
 import moe.ono.creator.center.MethodFinderDialog;
 import moe.ono.dexkit.TargetManager;
 import moe.ono.fix.huawei.HuaweiResThemeMgrFix;
 import moe.ono.hooks._core.HookItemLoader;
 import moe.ono.lifecycle.Parasitics;
 import moe.ono.service.PlatformUtils;
-import moe.ono.startup.HookBase;
 import moe.ono.startup.StartupInfo;
 import moe.ono.util.AppRuntimeHelper;
 import moe.ono.util.Initiator;
@@ -64,6 +62,8 @@ public class QLauncher {
         XposedHelpers.findAndHookMethod(CLAZZ_ACTIVITY_SPLASH, cl, "beforeDoOnCreate", new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                CacheConfig.setSplashActivity((Activity) param.thisObject);
+
                 String ver = PlatformUtils.INSTANCE.getQQVersion(context);
                 if (!Objects.equals(ver, TargetManager.getLastQQVersion())){
                     TargetManager.setIsNeedFindTarget(true);
@@ -136,6 +136,7 @@ public class QLauncher {
             post(() -> {
                 Logger.i("Inject Lifecycle For Process....");
                 Parasitics.injectModuleResources(ctx.getResources());
+                Parasitics.injectModuleResources(CacheConfig.getSplashActivity().getResources());
                 Parasitics.initForStubActivity(ctx);
             });
         }

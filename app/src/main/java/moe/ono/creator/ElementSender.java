@@ -80,7 +80,7 @@ import java.util.regex.Pattern;
 import moe.ono.R;
 import moe.ono.bridge.Nt_kernel_bridge;
 import moe.ono.bridge.kernelcompat.ContactCompat;
-import moe.ono.hooks.protocol.PacketHelperKt;
+import moe.ono.hooks.protocol.QPacketHelperKt;
 import moe.ono.hooks.base.util.Toasts;
 import moe.ono.util.AppRuntimeHelper;
 import moe.ono.ui.CommonContextWrapper;
@@ -177,9 +177,7 @@ public class ElementSender extends BottomPopupView {
                 tvTarget.setText("当前会话: " + getCurrentPeerID() + " | " + "未知");
             }
 
-            btnCustom.setOnClickListener(v -> {
-                showCustomElemDialog();
-            });
+            btnCustom.setOnClickListener(v -> showCustomElemDialog());
 
             btnCustom.setOnLongClickListener(v -> {
                 MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(v.getContext());
@@ -246,9 +244,9 @@ public class ElementSender extends BottomPopupView {
                     }
 
                     if (chat_type == 1) {
-                        PacketHelperKt.sendMessage(text, getCurrentPeerID(), false, send_type);
+                        QPacketHelperKt.sendMessage(text, getCurrentPeerID(), false, send_type);
                     } else if (chat_type == 2) {
-                        PacketHelperKt.sendMessage(text, getCurrentPeerID(), true, send_type);
+                        QPacketHelperKt.sendMessage(text, getCurrentPeerID(), true, send_type);
                     } else {
                         Toasts.error(getContext(), "失败");
                         return;
@@ -521,6 +519,7 @@ public class ElementSender extends BottomPopupView {
 
         LinearLayout layout = new LinearLayout(getContext());
         layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(16, 16, 16, 16);
 
         final EditText inputCount = new EditText(getContext());
         inputCount.setHint("次数");
@@ -578,7 +577,7 @@ public class ElementSender extends BottomPopupView {
                         } else if (type.equals("text")){
                             send_text_msg(content, contactCompat);
                         } else {
-                            PacketHelperKt.sendMessage(content, uid, isGroupMsg, type);
+                            QPacketHelperKt.sendMessage(content, uid, isGroupMsg, type);
                         }
 
                         currentCount++;
@@ -600,13 +599,10 @@ public class ElementSender extends BottomPopupView {
         builder.setTitle("预设管理");
 
         RecyclerView recyclerView = new RecyclerView(getContext());
-        CustomRecyclerViewAdapter adapter = new CustomRecyclerViewAdapter(presetelems, new CustomRecyclerViewAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(String item) {
-                String content = elemContentMap.get(item);
-                editText.setText(content);
-                elem_dialog.dismiss();
-            }
+        CustomRecyclerViewAdapter adapter = new CustomRecyclerViewAdapter(presetelems, item -> {
+            String content = elemContentMap.get(item);
+            editText.setText(content);
+            elem_dialog.dismiss();
         });
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
@@ -739,9 +735,7 @@ public class ElementSender extends BottomPopupView {
                         Toasts.error(getContext(), "导出数据格式错误");
                     }
                 })
-                .onCancel(() -> {
-                    Toasts.info(getContext(), "导出被取消");
-                })
+                .onCancel(() -> Toasts.info(getContext(), "导出被取消"))
                 .commit();
     }
 
@@ -749,9 +743,7 @@ public class ElementSender extends BottomPopupView {
         SafUtils.requestOpenFile(getContext())
                 .setMimeType("application/json")
                 .onResult(this::loadPresetElemsFromFile)
-                .onCancel(() -> {
-                    Toasts.info(getContext(), "导入被取消");
-                })
+                .onCancel(() -> Toasts.info(getContext(), "导入被取消"))
                 .commit();
     }
 
@@ -905,6 +897,11 @@ public class ElementSender extends BottomPopupView {
     @Override
     protected int getImplLayoutId() {
         return R.layout.element_sender_layout;
+    }
+
+    @Override
+    public Handler getHandler() {
+        return handler;
     }
 }
 

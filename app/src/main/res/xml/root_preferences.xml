@@ -53,6 +53,25 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        android:key="compatibility_category"
+        android:title="兼容">
+
+        <rikka.preference.SimpleMenuPreference
+            android:defaultValue="1"
+            android:entries="@array/hook_priority"
+            android:entryValues="@array/hook_priority_values"
+            android:icon="@drawable/ic_baseline_keyboard_arrow_up_24"
+            app:defaultValue="50"
+            android:key="hook_priority"
+            android:summary="%s"
+            android:title="XC_MethodHook 优先级"
+            android:persistent="false"
+            />
+
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
         android:key="about_category"
         android:title="关于">
         <Preference

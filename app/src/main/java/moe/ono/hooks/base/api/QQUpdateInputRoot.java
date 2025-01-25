@@ -1,9 +1,7 @@
 package moe.ono.hooks.base.api;
 
-import static moe.ono.constants.Constants.MethodCacheKey_AIOParam;
 import static moe.ono.constants.Constants.MethodCacheKey_InputRoot;
 import static moe.ono.util.SyncUtils.runOnUiThread;
-import static moe.ono.util.Utils.findMethodByName;
 
 import android.annotation.SuppressLint;
 import android.text.Editable;
@@ -16,11 +14,7 @@ import android.widget.EditText;
 import androidx.annotation.NonNull;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
-import moe.ono.config.ConfigManager;
 import moe.ono.creator.ElementSender;
 import moe.ono.dexkit.TargetManager;
 import moe.ono.hooks._base.ApiHookItem;
@@ -31,7 +25,7 @@ import moe.ono.util.Logger;
 @HookItem(path = "API/获取InputRoot")
 public class QQUpdateInputRoot extends ApiHookItem {
     public void update(ClassLoader classLoader) {
-        hookAfter(TargetManager.getMethod(MethodCacheKey_InputRoot), param -> {
+        hookAfter(TargetManager.requireMethod(MethodCacheKey_InputRoot), param -> {
             Button sendBtn = null;
             EditText editText = null;
             ViewGroup inputRoot = null;

@@ -1,11 +1,14 @@
 package moe.ono.hooks._base;
 
+import static moe.ono.constants.Constants.PrekCfgXXX;
+
 import androidx.annotation.NonNull;
 
 import java.lang.reflect.Member;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
+import moe.ono.config.ConfigManager;
 import moe.ono.hooks._core.factory.ExceptionFactory;
 import moe.ono.startup.HybridClassLoader;
 
@@ -92,7 +95,7 @@ public abstract class BaseHookItem {
      * 标准hook方法执行前
      */
     protected XC_MethodHook.Unhook hookBefore(Member method, HookAction action) {
-        return XposedBridge.hookMethod(method, new XC_MethodHook() {
+        return XposedBridge.hookMethod(method, new XC_MethodHook(ConfigManager.dGetInt(PrekCfgXXX+"hook_priority",50)) {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) {
                 tryExecute(param, action);
@@ -104,7 +107,7 @@ public abstract class BaseHookItem {
      * 标准hook方法执行后
      */
     protected XC_MethodHook.Unhook hookAfter(Member method, HookAction action) {
-        return XposedBridge.hookMethod(method, new XC_MethodHook() {
+        return XposedBridge.hookMethod(method, new XC_MethodHook(ConfigManager.dGetInt(PrekCfgXXX+"hook_priority",50)) {
             @Override
             protected void afterHookedMethod(MethodHookParam param) {
                 tryExecute(param, action);

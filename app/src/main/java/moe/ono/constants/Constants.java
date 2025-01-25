@@ -15,8 +15,11 @@ public class Constants {
     public static final String MethodCacheKey_MarkdownAIO = "method_MarkdownAIO";
     public static final String MethodCacheKey_getBuddyName = "method_getBuddyName";
     public static final String MethodCacheKey_getDiscussionMemberShowName = "method_getDiscussionMemberShowName";
+    public static final String ClazzCacheKey_AbstractQQCustomMenuItem = "clazz_AbstractQQCustomMenuItem";
 
     public static final String PrekXXX = "setting_switch_value_";
+    public static final String PrekClickableXXX = "clickable_setting_switch_value_";
+    public static final String PrekCfgXXX = "setting_cfg_value_";
     public static final String PrekEnableLog = "setting_switch_value_prek_enable_log";
     public static final String PrekSendFakeFile = "setting_switch_value_send_fake_file";
     public static final String PrekHoldRevokeMsg = "setting_switch_value_聊天与消息/防撤回";

@@ -1,7 +1,6 @@
 package moe.ono.startup;
 
 import android.annotation.SuppressLint;
-import android.os.Build;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;

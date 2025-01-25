@@ -91,7 +91,7 @@ public class Utils {
             return;
         }
 
-        Logger.e("*-------------------- " + TAG + " --------------------*");
+        Logger.i("*-------------------- " + TAG + " --------------------*");
         Bundle extras = intent.getExtras();
         if (extras != null) {
             for (String key : extras.keySet()) {
@@ -99,10 +99,10 @@ public class Utils {
                 Logger.d(key + " = " + Objects.requireNonNull(value) + "(" + value.getClass() + ")");
             }
         } else {
-            Logger.d("No extras found in the Intent.");
+            Logger.w("No extras found in the Intent.");
         }
 
-        Logger.e("^-------------------- " + "OVER~" + " --------------------^");
+        Logger.i("^-------------------- " + "OVER~" + " --------------------^");
     }
 
 

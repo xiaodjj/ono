@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import moe.ono.hook.gen.HookItemEntryList;
+import moe.ono.hooks._base.BaseClickableFunctionHookItem;
 import moe.ono.hooks._base.BaseHookItem;
 import moe.ono.hooks._base.BaseSwitchFunctionHookItem;
 
@@ -39,6 +40,18 @@ public class HookItemFactory {
         result.sort(Comparator.comparing(BaseHookItem::getSimpleName));
         return result;
     }
+
+    public static List<BaseClickableFunctionHookItem> getAllClickableFunctionItemList() {
+        ArrayList<BaseClickableFunctionHookItem> result = new ArrayList<>();
+        for (BaseHookItem item : ITEM_MAP.values()) {
+            if (item instanceof BaseClickableFunctionHookItem) {
+                result.add((BaseClickableFunctionHookItem) item);
+            }
+        }
+        result.sort(Comparator.comparing(BaseHookItem::getSimpleName));
+        return result;
+    }
+
 
     public static List<BaseHookItem> getAllItemList() {
         return List.copyOf(ITEM_MAP.values());

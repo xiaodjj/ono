@@ -4,6 +4,7 @@ import static moe.ono.config.ConfigManager.cGetBoolean;
 import static moe.ono.config.ConfigManager.cGetString;
 import static moe.ono.config.ConfigManager.cPutBoolean;
 import static moe.ono.config.ConfigManager.cPutString;
+import static moe.ono.constants.Constants.ClazzCacheKey_AbstractQQCustomMenuItem;
 import static moe.ono.constants.Constants.MethodCacheKey_AIOParam;
 import static moe.ono.constants.Constants.MethodCacheKey_InputRoot;
 import static moe.ono.constants.Constants.MethodCacheKey_MarkdownAIO;
@@ -17,8 +18,11 @@ import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 
 import org.luckypray.dexkit.DexKitBridge;
+import org.luckypray.dexkit.query.FindClass;
 import org.luckypray.dexkit.query.FindMethod;
+import org.luckypray.dexkit.query.matchers.ClassMatcher;
 import org.luckypray.dexkit.query.matchers.MethodMatcher;
+import org.luckypray.dexkit.result.ClassData;
 import org.luckypray.dexkit.result.MethodData;
 
 import java.lang.reflect.Method;
@@ -59,11 +63,25 @@ public class TargetManager {
         }
     }
 
+    private static void doFindClass(DexKitBridge bridge, ClassLoader classLoader, FindClass findClass, String key) {
+        ClassData classData = bridge.findClass(findClass).singleOrThrow(() -> {
+            Logger.e(key, "The returned result is not unique");
+            throw new IllegalStateException("The returned result is not unique");
+        });
+        try {
+            Class<?> clazz = classData.getInstance(classLoader);
+            cPutString(key, clazz.getName());
+        } catch (ClassNotFoundException e) {
+            Logger.e("doFindClass", e);
+        }
+    }
+
 
     public static void runMethodFinder(ApplicationInfo ai, ClassLoader cl, Activity activity, final OnTaskCompleteListener listener) {
         var ref = new Object() {
             String result = "";
         };
+
 
 
         new Thread(() -> {
@@ -109,6 +127,16 @@ public class TargetManager {
             ref.result = ref.result + "\n\n-> " + cGetString(MethodCacheKey_getDiscussionMemberShowName, null);
 
 
+            executor.execute((bridge, classLoader) -> doFindClass(bridge, cl, FindClass.create()
+                    .searchPackages("com.tencent.qqnt.aio.menu.ui")
+                    .matcher(ClassMatcher.create()
+                            .usingStrings("QQCustomMenuItem{title=")
+                    ), ClazzCacheKey_AbstractQQCustomMenuItem));
+
+            ref.result = ref.result + "\n\n-> " + cGetString(ClazzCacheKey_AbstractQQCustomMenuItem, null);
+
+
+
             ref.result = ref.result + "\n\n\n... 搜索结果已缓存";
 
             activity.runOnUiThread(() -> {
@@ -132,7 +160,7 @@ public class TargetManager {
         editor.apply();
     }
 
-    public static Method getMethod(String key) {
+    public static Method requireMethod(String key) {
         String cachedMethodSignature = cGetString(key, null);
 
         try {
@@ -141,6 +169,17 @@ public class TargetManager {
             String methodName = parts[1];
             Class<?> clazz = loadClass(className);
             return findMethodByName(clazz, methodName);
+        } catch (Exception e) {
+            Logger.e(key, e);
+        }
+        return null;
+    }
+
+    public static Class<?> requireClazz(String key) {
+        String cachedClazzName = cGetString(key, null);
+
+        try {
+            return loadClass(cachedClazzName);
         } catch (Exception e) {
             Logger.e(key, e);
         }

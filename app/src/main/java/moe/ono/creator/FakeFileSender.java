@@ -8,7 +8,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -22,8 +21,8 @@ import com.lxj.xpopup.util.XPopupUtils;
 
 import moe.ono.R;
 import moe.ono.hooks.base.util.Toasts;
-import moe.ono.hooks.protocol.FakeFileHelperKt;
-import moe.ono.hooks.protocol.PacketHelperKt;
+import moe.ono.hooks.protocol.QFakeFileHelperKt;
+import moe.ono.hooks.protocol.QPacketHelperKt;
 import moe.ono.ui.CommonContextWrapper;
 import moe.ono.util.AppRuntimeHelper;
 
@@ -76,8 +75,8 @@ public class FakeFileSender extends BottomPopupView {
             btnSend.setOnClickListener(v -> {
                 String result;
                 try {
-                    result = FakeFileHelperKt.create(filename.getText().toString(),
-                            FakeFileHelperKt.parseFileSize(filesize.getText().toString()));
+                    result = QFakeFileHelperKt.create(filename.getText().toString(),
+                            QFakeFileHelperKt.parseFileSize(filesize.getText().toString()));
                 } catch (Exception e) {
                     Toasts.error(getContext(), "序列化时遇到致命错误，请检查参数");
                     return;
@@ -85,9 +84,9 @@ public class FakeFileSender extends BottomPopupView {
 
                 String send_type = "element";
                 if (chat_type == 1) {
-                    PacketHelperKt.sendMessage(result, getCurrentPeerID(), false, send_type);
+                    QPacketHelperKt.sendMessage(result, getCurrentPeerID(), false, send_type);
                 } else if (chat_type == 2) {
-                    PacketHelperKt.sendMessage(result, getCurrentPeerID(), true, send_type);
+                    QPacketHelperKt.sendMessage(result, getCurrentPeerID(), true, send_type);
                 } else {
                     Toasts.error(getContext(), "失败");
                     return;

@@ -1,8 +1,8 @@
 package moe.ono.config
 
+import moe.ono.hooks._base.BaseHookItem
 import moe.ono.hooks._base.BaseSwitchFunctionHookItem
 import moe.ono.hooks._core.factory.HookItemFactory
-import moe.ono.util.Logger
 
 data class SettingItem(
     val key: String,
@@ -12,12 +12,27 @@ data class SettingItem(
     val iconResId: Int? = null,
     val summary: String? = null,
     val isSwitch: Boolean,
-    val clazz: BaseSwitchFunctionHookItem
+    val clazz: BaseHookItem
 )
 
-fun getDynamicSettings(): List<SettingItem> {
+fun getDynamicSwitchSettings(): List<SettingItem> {
 
     return HookItemFactory.getAllSwitchFunctionItemList().map { hookItem ->
+        val path = hookItem.path.split("/")
+        SettingItem(
+            key = path[path.size - 1],
+            title = path[path.size - 1],
+            summary = hookItem.desc,
+            isSwitch = hookItem.isEnabled,
+            t = path[0],
+            path = hookItem.path,
+            clazz =  hookItem
+        )
+    }
+}
+
+fun getDynamicClickableSettings(): List<SettingItem> {
+    return HookItemFactory.getAllClickableFunctionItemList().map { hookItem ->
         val path = hookItem.path.split("/")
         SettingItem(
             key = path[path.size - 1],

@@ -2,7 +2,7 @@ package moe.ono.util;
 
 import static moe.ono.constants.Constants.MethodCacheKey_getBuddyName;
 import static moe.ono.constants.Constants.MethodCacheKey_getDiscussionMemberShowName;
-import static moe.ono.dexkit.TargetManager.getMethod;
+import static moe.ono.dexkit.TargetManager.requireMethod;
 
 import android.text.TextUtils;
 
@@ -87,7 +87,7 @@ public class ContactUtils {
         Objects.requireNonNull(app, "app is null");
         Objects.requireNonNull(troopUin, "troopUin is null");
         Objects.requireNonNull(memberUin, "memberUin is null");
-        Method getDiscussionMemberShowName = getMethod(MethodCacheKey_getDiscussionMemberShowName);
+        Method getDiscussionMemberShowName = requireMethod(MethodCacheKey_getDiscussionMemberShowName);
         if (getDiscussionMemberShowName == null) {
             Logger.e("getDiscussionMemberShowName but N_ContactUtils_getDiscussionMemberShowName not found");
             return null;
@@ -109,7 +109,7 @@ public class ContactUtils {
     public static String getBuddyName(@NonNull AppRuntime app, @NonNull String uin) {
         Objects.requireNonNull(app, "app is null");
         Objects.requireNonNull(uin, "uin is null");
-        Method getBuddyName = getMethod(MethodCacheKey_getBuddyName);
+        Method getBuddyName = requireMethod(MethodCacheKey_getBuddyName);
         if (getBuddyName == null) {
             Logger.w("getBuddyName but N_ContactUtils_getBuddyName not found");
             return null;

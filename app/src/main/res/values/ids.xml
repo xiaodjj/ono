@@ -3,4 +3,6 @@
     <item name="OnO_settingEntryItem" type="id" />
     <item name="root" type="id" />
     <item name="main_activity_menuItem_toggleDesktopIcon" type="id" />
+    <item type="id" name="item_save_to_panel" />
+    <item name="ivTitleName" type="id"/>
 </resources>

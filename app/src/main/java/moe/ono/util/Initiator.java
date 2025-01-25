@@ -355,5 +355,13 @@ public class Initiator {
         return load("com/tencent/mobileqq/data/MessageRecord");
     }
 
+    public static Class<?> _BaseSessionInfo() {
+        if (HostInfo.requireMinQQVersion(QQVersion.QQ_8_9_0)) {
+            Class<?> sessionInfo = findClassWithSynthetics("com/tencent/mobileqq/activity/aio/SessionInfo");
+            return sessionInfo.getSuperclass();
+        } else {
+            return findClassWithSynthetics("com.tencent.mobileqq.activity.aio.BaseSessionInfo", "com.tencent.mobileqq.activity.aio.SessionInfo");
+        }
+    }
 
 }

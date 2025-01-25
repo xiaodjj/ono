@@ -26,15 +26,24 @@ import moe.ono.BuildConfig
 import moe.ono.R
 import moe.ono.config.ConfigManager
 import moe.ono.config.SettingItem
-import moe.ono.config.getDynamicSettings
+import moe.ono.config.getDynamicClickableSettings
+import moe.ono.config.getDynamicSwitchSettings
+import moe.ono.constants.Constants.PrekCfgXXX
 import moe.ono.constants.Constants.PrekEnableLog
 import moe.ono.constants.Constants.PrekSendFakeFile
+import moe.ono.constants.Constants.PrekXXX
+import moe.ono.creator.center.ClickableFunctionDialog.showCFGDialogStickerPanelEntry
+import moe.ono.creator.center.ClickableFunctionDialog.showCFGDialogSurnamePredictor
 import moe.ono.databinding.ActivitySettingBinding
 import moe.ono.dexkit.TargetManager
 import moe.ono.dexkit.TargetManager.removeAllMethodSignature
 import moe.ono.fragment.BaseSettingFragment
-import moe.ono.hooks._core.factory.HookItemFactory
+import moe.ono.hooks._base.BaseClickableFunctionHookItem
+import moe.ono.hooks._base.BaseSwitchFunctionHookItem
+import moe.ono.hooks._core.factory.HookItemFactory.getItem
 import moe.ono.hooks.base.util.Toasts
+import moe.ono.hooks.item.chat.StickerPanelEntry
+import moe.ono.hooks.item.sigma.SurnamePredictor
 import moe.ono.hostInfo
 import moe.ono.isInHostProcess
 import moe.ono.ui.ThemeAttrUtils
@@ -42,6 +51,7 @@ import moe.ono.ui.view.BgEffectPainter
 import moe.ono.util.Utils.convertTimestampToDate
 import moe.ono.util.Utils.jump
 import rikka.material.preference.MaterialSwitchPreference
+import rikka.preference.SimpleMenuPreference
 import java.lang.Integer.max
 
 open class OUOSettingActivity : BaseActivity() {
@@ -89,6 +99,7 @@ open class OUOSettingActivity : BaseActivity() {
         getTheme().applyStyle(rikka.material.preference.R.style.ThemeOverlay_Rikka_Material3_Preference, true)
 
         val title = intent.getStringExtra("title")
+        val subtitle = intent.getStringExtra("subtitle")
 
         super.doOnCreate(null)
         binding = ActivitySettingBinding.inflate(layoutInflater)
@@ -139,6 +150,10 @@ open class OUOSettingActivity : BaseActivity() {
             mAppToolBar.menu.clear()
         }
 
+        if (subtitle != null) {
+            mAppToolBar.subtitle = subtitle
+        }
+
 
         supportFragmentManager
             .beginTransaction()
@@ -163,6 +178,7 @@ open class OUOSettingActivity : BaseActivity() {
             val buildTime = findPreference<Preference>("build_time")
             val buildUUID = findPreference<Preference>("build_uuid")
             val enableLog = findPreference<MaterialSwitchPreference>("prek_enable_log")
+            val hookPriority = findPreference<SimpleMenuPreference>("hook_priority")
             version?.setSummary(BuildConfig.VERSION_NAME)
             buildTime?.setSummary(convertTimestampToDate(BuildConfig.BUILD_TIMESTAMP))
             buildUUID?.setSummary(BuildConfig.BUILD_UUID)
@@ -173,6 +189,14 @@ open class OUOSettingActivity : BaseActivity() {
                 true
             }
 
+            hookPriority?.value = ConfigManager.getDefaultConfig().getInt(PrekCfgXXX+"hook_priority", 50).toString()
+
+            hookPriority?.setOnPreferenceChangeListener { _, newValue ->
+                ConfigManager.getDefaultConfig().edit().putInt(PrekCfgXXX+"hook_priority",
+                    Integer.parseInt(newValue.toString())
+                ).apply()
+                true
+            }
         }
 
         override fun onPreferenceTreeClick(preference: Preference): Boolean {
@@ -186,7 +210,7 @@ open class OUOSettingActivity : BaseActivity() {
                     jump(requireContext(), "https://github.com/cwuom/ono")
                     return super.onPreferenceTreeClick(preference)
                 }
-                "build_time", "build_uuid", "version","prek_enable_log" -> {
+                "build_time", "build_uuid", "version","prek_enable_log", "hook_priority" -> {
                     return super.onPreferenceTreeClick(preference)
                 }
             }
@@ -194,6 +218,9 @@ open class OUOSettingActivity : BaseActivity() {
             key?.let {
                 val intent = Intent(requireContext(), OUOSettingActivity::class.java).apply {
                     putExtra("title", it)
+                    if (it == "Sigma") {
+                        putExtra("subtitle", "此窗口内的功能不接受任何反馈")
+                    }
                 }
                 startActivity(intent)
             }
@@ -312,7 +339,7 @@ open class OUOSettingActivity : BaseActivity() {
 
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             preferenceManager.createPreferenceScreen(requireContext()).apply {
-                getDynamicSettings().forEach { settingItem ->
+                getDynamicSwitchSettings().forEach { settingItem ->
                     if (settingItem.t == t){
                         val preference = MaterialSwitchPreference(context).apply {
                             key = settingItem.key
@@ -323,6 +350,24 @@ open class OUOSettingActivity : BaseActivity() {
                             isPersistent = false
                             setOnPreferenceClickListener {
                                 handleItemClick(settingItem, isChecked)
+                                true
+                            }
+                        }
+                        addPreference(preference)
+                    }
+
+                }
+
+                getDynamicClickableSettings().forEach { settingItem ->
+                    if (settingItem.t == t){
+                        val preference = Preference(context).apply {
+                            key = settingItem.key
+                            title = settingItem.title
+                            summary = settingItem.summary
+                            icon = settingItem.iconResId?.let { context.getDrawable(it) }
+                            isPersistent = false
+                            setOnPreferenceClickListener {
+                                handleItemClick(settingItem, false)
                                 true
                             }
                         }
@@ -352,12 +397,27 @@ open class OUOSettingActivity : BaseActivity() {
         }
 
         private fun handleItemClick(settingItem: SettingItem, isChecked: Boolean) {
-            ConfigManager.getDefaultConfig().edit().putBoolean("setting_switch_value_${settingItem.path}", isChecked).apply()
-            val item = HookItemFactory.getItem(settingItem.clazz::class.java)
-            item.isEnabled = isChecked
-            if (isChecked){
-                item.startLoad()
+            ConfigManager.getDefaultConfig().edit().putBoolean("$PrekXXX${settingItem.path}", isChecked).apply()
+            val item = getItem(settingItem.clazz::class.java)
+            if (item is BaseSwitchFunctionHookItem) {
+                item.isEnabled = isChecked
+                if (isChecked){
+                    item.startLoad()
+                }
+                return
             }
+
+            if (item is BaseClickableFunctionHookItem) {
+                when (item.path) {
+                    getItem(SurnamePredictor::class.java).path -> {
+                        showCFGDialogSurnamePredictor(item, requireContext())
+                    }
+                    getItem(StickerPanelEntry::class.java).path -> {
+                        showCFGDialogStickerPanelEntry(item, requireContext())
+                    }
+                }
+            }
+
         }
     }
 
