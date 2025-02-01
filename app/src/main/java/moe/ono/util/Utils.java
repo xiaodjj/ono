@@ -22,6 +22,7 @@ import com.tencent.qqnt.kernel.nativeinterface.VASMsgNamePlate;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -226,4 +227,19 @@ public class Utils {
         throw new IllegalArgumentException("Method not found: " + methodName);
     }
 
+    public static String timeToFormat(long time) {
+        @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        return sdf.format(time);
+    }
+
+    public static String[] parseURLComponents(String url) {
+        String host = "";
+        String type = "";
+        try {
+            URL Url = new URL(url);
+            host = Url.getHost();
+            type = Url.toURI().getScheme();
+        } catch (Exception ignored) {}
+        return new String[] {host, type};
+    }
 }

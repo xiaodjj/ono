@@ -246,4 +246,9 @@ dependencies {
     implementation(libs.byte.buddy)
 
     implementation(libs.dalvik.dx)
+
+    // okhttp3
+    implementation(libs.okhttp3.okhttp)
+
+    implementation("io.noties.markwon:core:4.6.2")
 }

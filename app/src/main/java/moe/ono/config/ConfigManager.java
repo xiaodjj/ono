@@ -132,6 +132,10 @@ public abstract class ConfigManager implements SharedPreferences, SharedPreferen
         return getDefaultConfig().getBooleanOrFalse(key);
     }
 
+    public static boolean dGetBooleanDefTrue(@NonNull String key) {
+        return getDefaultConfig().getBooleanOrDefault(key, true);
+    }
+
     public static String dGetString(@NonNull String key, String d) {
         return getDefaultConfig().getStringOrDefault(key, d);
     }

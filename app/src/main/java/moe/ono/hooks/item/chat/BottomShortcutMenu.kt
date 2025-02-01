@@ -14,12 +14,14 @@ import moe.ono.config.ConfigManager
 import moe.ono.constants.Constants
 import moe.ono.creator.ElementSender
 import moe.ono.creator.FakeFileSender
+import moe.ono.creator.QQMessageTrackerDialog
 import moe.ono.hooks.XHook
 import moe.ono.hooks._base.BaseSwitchFunctionHookItem
 import moe.ono.hooks._core.annotation.HookItem
 import moe.ono.hooks._core.factory.HookItemFactory
 import moe.ono.hooks.base.util.Toasts
 import moe.ono.hooks.item.developer.QQPacketHelperEntry
+import moe.ono.hooks.item.sigma.QQMessageTracker
 import moe.ono.reflex.XMethod
 import moe.ono.ui.CommonContextWrapper
 import moe.ono.util.Initiator
@@ -69,6 +71,12 @@ class BottomShortcutMenu : BaseSwitchFunctionHookItem() {
                 QQPacketHelperEntry::class.java
             ).path
         )
+        val qqMessageTracker = ConfigManager.getDefaultConfig().getBooleanOrFalse(
+            Constants.PrekClickableXXX + HookItemFactory.getItem(
+                QQMessageTracker::class.java
+            ).path
+        )
+
         val items = ArrayList<String>()
         if (qqPacketHelper) {
             items.add("QQPacketHelper")
@@ -76,6 +84,10 @@ class BottomShortcutMenu : BaseSwitchFunctionHookItem() {
         if (sendFakeFile) {
             items.add("假文件")
         }
+        if (qqMessageTracker) {
+            items.add("已读追踪")
+        }
+
         items.add("匿名化")
         XPopup.Builder(fixCtx)
             .hasShadowBg(false)
@@ -96,6 +108,11 @@ class BottomShortcutMenu : BaseSwitchFunctionHookItem() {
                     "匿名化" -> autoMosaicNameNT()
                     "假文件" -> try {
                         SyncUtils.runOnUiThread { FakeFileSender.createView(view.context) }
+                    } catch (e: Exception) {
+                        Toasts.error(view.context, "请求失败")
+                    }
+                    "已读追踪" -> try {
+                        SyncUtils.runOnUiThread { QQMessageTrackerDialog.createView(view.context) }
                     } catch (e: Exception) {
                         Toasts.error(view.context, "请求失败")
                     }

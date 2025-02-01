@@ -11,9 +11,9 @@
       "type": "SINGLE",
       "filters": [],
       "attributes": [],
-      "versionCode": 25012521,
-      "versionName": "62fb843.01252133",
-      "outputFile": "ONO-RELEASE-62fb843.01252133.apk"
+      "versionCode": 25012522,
+      "versionName": "98bb080.01252203",
+      "outputFile": "ONO-RELEASE-98bb080.01252203.apk"
     }
   ],
   "elementType": "File",
@@ -22,14 +22,14 @@
       "minApi": 28,
       "maxApi": 30,
       "baselineProfiles": [
-        "baselineProfiles/1/ONO-RELEASE-62fb843.01252133.dm"
+        "baselineProfiles/1/ONO-RELEASE-98bb080.01252203.dm"
       ]
     },
     {
       "minApi": 31,
       "maxApi": 2147483647,
       "baselineProfiles": [
-        "baselineProfiles/0/ONO-RELEASE-62fb843.01252133.dm"
+        "baselineProfiles/0/ONO-RELEASE-98bb080.01252203.dm"
       ]
     }
   ],

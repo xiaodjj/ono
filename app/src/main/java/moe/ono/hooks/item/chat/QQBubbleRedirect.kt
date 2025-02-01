@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.webkit.JavascriptInterface
 import de.robv.android.xposed.XposedHelpers.findMethodExact
-import moe.ono.hooks.XHook.hookBefore
+import moe.ono.config.CacheConfig
 import moe.ono.hooks._base.BaseSwitchFunctionHookItem
 import moe.ono.hooks._core.annotation.HookItem
 import moe.ono.hooks._core.factory.HookItemFactory.getItem
@@ -92,39 +92,27 @@ class QQBubbleRedirect : BaseSwitchFunctionHookItem() {
             x5ValueCallbackClass: Class<*>
         ) {
             try {
-                val m: Method = findMethodExact(
-                    "com.tencent.smtt.sdk.WebViewClient".clazz,
-                    "onPageFinished",
-                    "com.tencent.smtt.sdk.WebView".clazz,
-                    String::class.java,
-                )
-                hookBefore(getItem(QQBubbleRedirect::class.java), m) {
-                    Logger.d("QQBubbleRedirect -> onPageFinished")
-                    injectJavaScriptLogic(
-                        x5WebView = it.args[0],
-                        itemId = itemId,
-                        x5WebViewClass = x5WebViewClass,
-                        x5ValueCallbackClass = x5ValueCallbackClass
-                    )
-                }
-
+                CacheConfig.setItemID(itemId)
+                CacheConfig.setX5WebViewClass(x5WebViewClass)
+                CacheConfig.setX5ValueCallbackClass(x5ValueCallbackClass)
             } catch (e: Exception) {
                 Logger.e("创建 X5 WebViewClient 失败: ${e.stackTraceToString()}")
                 throw RuntimeException("无法创建 X5 WebViewClient", e)
             }
         }
-        private fun injectJavaScriptLogic(
+        fun injectJavaScriptLogic(
             x5WebView: Any?,
             itemId: String,
             x5WebViewClass: Class<*>,
             x5ValueCallbackClass: Class<*>
         ) {
+            if (!getItem(QQBubbleRedirect::class.java).isEnabled) return
             try {
                 val jsCode = """
             (function() {
                 var existingCustomButton = document.querySelector('button[data-custom-button="true"]');
                 if (existingCustomButton) {
-                    return;
+                    return; 
                 }
 
                 var buttons = document.querySelectorAll('button[vt-itemid][vt-itemtype][vt-actionid]');

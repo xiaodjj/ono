@@ -1,4 +1,4 @@
-package moe.ono.hooks.base
+package moe.ono.hooks.base.api
 
 import com.tencent.qphone.base.remote.FromServiceMsg
 import com.tencent.qphone.base.remote.ToServiceMsg

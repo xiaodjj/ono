@@ -32,6 +32,7 @@ import moe.ono.constants.Constants.PrekCfgXXX
 import moe.ono.constants.Constants.PrekEnableLog
 import moe.ono.constants.Constants.PrekSendFakeFile
 import moe.ono.constants.Constants.PrekXXX
+import moe.ono.creator.center.ClickableFunctionDialog.showCFGDialogQQMessageTracker
 import moe.ono.creator.center.ClickableFunctionDialog.showCFGDialogStickerPanelEntry
 import moe.ono.creator.center.ClickableFunctionDialog.showCFGDialogSurnamePredictor
 import moe.ono.databinding.ActivitySettingBinding
@@ -43,7 +44,8 @@ import moe.ono.hooks._base.BaseSwitchFunctionHookItem
 import moe.ono.hooks._core.factory.HookItemFactory.getItem
 import moe.ono.hooks.base.util.Toasts
 import moe.ono.hooks.item.chat.StickerPanelEntry
-import moe.ono.hooks.item.sigma.SurnamePredictor
+import moe.ono.hooks.item.sigma.QQMessageTracker
+import moe.ono.hooks.item.sigma.QQSurnamePredictor
 import moe.ono.hostInfo
 import moe.ono.isInHostProcess
 import moe.ono.ui.ThemeAttrUtils
@@ -219,7 +221,7 @@ open class OUOSettingActivity : BaseActivity() {
                 val intent = Intent(requireContext(), OUOSettingActivity::class.java).apply {
                     putExtra("title", it)
                     if (it == "Sigma") {
-                        putExtra("subtitle", "此窗口内的功能不接受任何反馈")
+                        putExtra("subtitle", "此窗口内的功能存在一定风险和争议，请谨慎使用")
                     }
                 }
                 startActivity(intent)
@@ -409,11 +411,14 @@ open class OUOSettingActivity : BaseActivity() {
 
             if (item is BaseClickableFunctionHookItem) {
                 when (item.path) {
-                    getItem(SurnamePredictor::class.java).path -> {
+                    getItem(QQSurnamePredictor::class.java).path -> {
                         showCFGDialogSurnamePredictor(item, requireContext())
                     }
                     getItem(StickerPanelEntry::class.java).path -> {
                         showCFGDialogStickerPanelEntry(item, requireContext())
+                    }
+                    getItem(QQMessageTracker::class.java).path -> {
+                        showCFGDialogQQMessageTracker(item, requireContext())
                     }
                 }
             }

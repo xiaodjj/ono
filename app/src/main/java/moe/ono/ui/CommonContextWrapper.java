@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.Objects;
 
+import moe.ono.R;
 import moe.ono.lifecycle.Parasitics;
 import moe.ono.util.SavedInstanceStatePatchedClassReferencer;
 
@@ -128,7 +129,7 @@ public class CommonContextWrapper extends ContextThemeWrapper {
         if (isAppCompatContext(base)) {
             return base;
         }
-        return new CommonContextWrapper(base, ModuleThemeManager.getCurrentStyleId(),
+        return new CommonContextWrapper(base, R.style.Theme_Ono,
                 recreateNighModeConfig(base, ResUtils.getNightModeMasked()));
     }
 

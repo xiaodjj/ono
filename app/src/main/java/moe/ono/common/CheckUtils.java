@@ -1,5 +1,6 @@
 package moe.ono.common;
 
+import com.alibaba.fastjson2.JSON;
 import com.google.gson.JsonParser;
 
 public class CheckUtils {
@@ -25,9 +26,9 @@ public class CheckUtils {
 
     public static boolean isJSON(String text) {
         try {
-            JsonParser.parseString(text);
+            JSON.parse(text);
             return true;
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             return false;
         }
     }

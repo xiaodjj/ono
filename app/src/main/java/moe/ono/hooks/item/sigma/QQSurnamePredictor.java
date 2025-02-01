@@ -2,7 +2,6 @@ package moe.ono.hooks.item.sigma;
 
 import static de.robv.android.xposed.XposedHelpers.findMethodExact;
 import static moe.ono.constants.Constants.PrekCfgXXX;
-import static moe.ono.constants.Constants.PrekXXX;
 import static moe.ono.hooks._core.factory.HookItemFactory.getItem;
 import static moe.ono.util.Initiator.loadClass;
 
@@ -44,7 +43,7 @@ import moe.ono.util.SyncUtils;
         path = "Sigma/猜姓氏",
         description = "给好友/陌生人大额转账触发（如5000元）\n* 重启生效"
 )
-public class SurnamePredictor extends BaseClickableFunctionHookItem {
+public class QQSurnamePredictor extends BaseClickableFunctionHookItem {
     public boolean stop_flag = false;
     public boolean start_flag = false;
     private final ArrayList<String> lst_tried_surname = new ArrayList<>();
@@ -176,7 +175,7 @@ public class SurnamePredictor extends BaseClickableFunctionHookItem {
 
                         functionMethod.invoke(function0);
                         retryMethod.invoke(retryAbility, extraMap);
-                        Thread.sleep(ConfigManager.dGetInt(PrekCfgXXX + getItem(SurnamePredictor.class).getPath(), 300));
+                        Thread.sleep(ConfigManager.dGetInt(PrekCfgXXX + getItem(QQSurnamePredictor.class).getPath(), 300));
                     }
                     Toast("跑完了", 1);
                 } catch (NoSuchMethodException | IllegalAccessException |

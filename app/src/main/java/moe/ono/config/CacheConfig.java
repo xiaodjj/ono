@@ -22,6 +22,9 @@ public class CacheConfig {
     private static String rkeyPrivate;
     @SuppressLint("StaticFieldLeak")
     private static Activity splashActivity;
+    private static String itemid;
+    private static Class x5WebViewClass;
+    private static Class x5ValueCallbackClass;
 
     public static String getRKeyGroup() {
         if (rkeyGroup == null){
@@ -47,6 +50,34 @@ public class CacheConfig {
     public static void setRKeyPrivate(String rk) {
         Objects.requireNonNull(rk);
         CacheConfig.rkeyPrivate = rk;
+    }
+
+    public static void setItemID(String itemID) {
+        Objects.requireNonNull(itemID);
+        CacheConfig.itemid = itemID;
+    }
+
+
+    public static String getItemID() {
+        return CacheConfig.itemid;
+    }
+
+    public static void setX5WebViewClass(Class clazz) {
+        Objects.requireNonNull(clazz);
+        CacheConfig.x5WebViewClass = clazz;
+    }
+
+    public static Class getX5WebViewClass() {
+        return CacheConfig.x5WebViewClass;
+    }
+
+    public static void setX5ValueCallbackClass(Class clazz) {
+        Objects.requireNonNull(clazz);
+        CacheConfig.x5ValueCallbackClass = clazz;
+    }
+
+    public static Class getX5ValueCallbackClass() {
+        return CacheConfig.x5ValueCallbackClass;
     }
 
     public static void setSplashActivity(Activity activity) {

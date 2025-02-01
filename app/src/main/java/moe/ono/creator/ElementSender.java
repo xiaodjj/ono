@@ -497,7 +497,7 @@ public class ElementSender extends BottomPopupView {
 
 
 
-    private void send_ark_msg(String text, ContactCompat contactCompat) throws JSONException {
+    public static void send_ark_msg(String text, ContactCompat contactCompat) throws JSONException {
         new JSONObject(text);
         ArrayList<MsgElement> elements = new ArrayList<>();
         MsgElement msgElement = nt_build_ark(text);
@@ -505,7 +505,7 @@ public class ElementSender extends BottomPopupView {
         Nt_kernel_bridge.send_msg(contactCompat, elements);
     }
 
-    private void send_text_msg(String text, ContactCompat contactCompat) {
+    public static void send_text_msg(String text, ContactCompat contactCompat) {
         ArrayList<MsgElement> elements = new ArrayList<>();
         MsgElement msgElement = nt_build_text(text);
         elements.add(msgElement);
