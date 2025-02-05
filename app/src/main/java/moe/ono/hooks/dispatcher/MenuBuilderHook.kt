@@ -4,6 +4,7 @@ import de.robv.android.xposed.XC_MethodHook
 import moe.ono.hooks._base.ApiHookItem
 import moe.ono.hooks._core.annotation.HookItem
 import moe.ono.hooks.item.chat.StickerPanelEntry
+import moe.ono.hooks.item.developer.QQMessageFetcher
 import moe.ono.hooks.item.sigma.QQMessageTracker
 import java.lang.reflect.Modifier
 
@@ -12,6 +13,7 @@ class MenuBuilderHook : ApiHookItem() {
     private val decorators: Array<OnMenuBuilder> = arrayOf(
         StickerPanelEntry(),
         QQMessageTracker(),
+        QQMessageFetcher(),
     )
 
     override fun load(classLoader: ClassLoader) {

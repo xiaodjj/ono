@@ -47,18 +47,7 @@ public class QQPacketHelperEntry extends BaseSwitchFunctionHookItem {
 
     @Override
     public void load(@NonNull ClassLoader classLoader) {
-        try {
-            Class<?> clazz = loadClass(CLAZZ_ACTIVITY_SPLASH);
-            XposedHelpers.findAndHookMethod(clazz, "doOnCreate", Bundle.class,
-                    new XC_MethodHook() {
-                        @Override
-                        protected void afterHookedMethod(MethodHookParam param) {
-                            hook();
-                        }
-                    });
-        } catch (ClassNotFoundException e) {
-            Logger.e("QQPacketHelper", e);
-        }
+        hook();
     }
 
 }

@@ -4,16 +4,23 @@ import com.tencent.qphone.base.remote.FromServiceMsg
 import com.tencent.qphone.base.remote.ToServiceMsg
 import moe.ono.config.CacheConfig.setRKeyGroup
 import moe.ono.config.CacheConfig.setRKeyPrivate
+import moe.ono.creator.FakeFileSender
+import moe.ono.creator.QQMessageFetcherResultDialog
+import moe.ono.creator.QQMessageTrackerResultDialog
 import moe.ono.hooks._base.ApiHookItem
 import moe.ono.hooks._core.annotation.HookItem
 import moe.ono.reflex.XField
 import moe.ono.reflex.XMethod
+import moe.ono.ui.CommonContextWrapper
+import moe.ono.util.ContextUtils
 import moe.ono.util.FunProtoData
+import moe.ono.util.Logger
+import moe.ono.util.SyncUtils
 import org.json.JSONObject
 import java.util.Arrays
 
 @HookItem(path = "API/更新RKey")
-class QQUpdateResourceKey : ApiHookItem() {
+class QQMsgRespHandler : ApiHookItem() {
     private fun update(classLoader: ClassLoader) {
         hookBefore(XMethod.clz("mqq.app.msghandle.MsgRespHandler").name("dispatchRespMsg").ignoreParam().get()) { param ->
             val serviceMsg: ToServiceMsg = XField.obj(param.args[1]).name("toServiceMsg").get()
@@ -42,6 +49,21 @@ class QQUpdateResourceKey : ApiHookItem() {
 
                 setRKeyGroup(rkeyGroup)
                 setRKeyPrivate(rkeyPrivate)
+            } else if ("MessageSvc.PbGetGroupMsg" == fromServiceMsg.serviceCmd) {
+                Logger.d("on MessageSvc.PbGetGroupMsg")
+                val data = FunProtoData()
+                data.fromBytes(
+                    getUnpPackage(
+                        fromServiceMsg.wupBuffer
+                    )
+                )
+
+                val obj: JSONObject = data.toJSON()
+
+                Logger.d("obj: " + obj.toString(4))
+                SyncUtils.runOnUiThread { QQMessageFetcherResultDialog.createView(
+                    CommonContextWrapper.createAppCompatContext(ContextUtils.getCurrentActivity()), obj) }
+
             }
         }
 

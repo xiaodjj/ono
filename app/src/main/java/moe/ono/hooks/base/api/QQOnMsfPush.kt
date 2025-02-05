@@ -8,6 +8,7 @@ import moe.ono.hooks.item.entertainment.BlockBadlanguage
 import moe.ono.hooks.item.entertainment.DoNotBrushMeOff
 import moe.ono.reflex.ClassUtils
 import moe.ono.reflex.MethodUtils
+import moe.ono.util.Logger
 import top.artmoe.inao.entries.InfoSyncPushOuterClass
 import top.artmoe.inao.entries.MsgPushOuterClass
 
@@ -24,15 +25,18 @@ class QQOnMsfPush : ApiHookItem() {
             .first()
 
 
-        hookBefore(onMSFPushMethod, { param ->
+        hookBefore(onMSFPushMethod) { param ->
             val cmd = param.args[0] as String
             val protoBuf = param.args[1] as ByteArray
-            if (cmd == "trpc.msg.register_proxy.RegisterProxy.InfoSyncPush") {
-                handleInfoSyncPush(protoBuf, param)
-            } else if (cmd == "trpc.msg.olpush.OlPushService.MsgPush") {
-                handleMsgPush(protoBuf, param)
+            when (cmd) {
+                "trpc.msg.register_proxy.RegisterProxy.InfoSyncPush" -> {
+                    handleInfoSyncPush(protoBuf, param)
+                }
+                "trpc.msg.olpush.OlPushService.MsgPush" -> {
+                    handleMsgPush(protoBuf, param)
+                }
             }
-        })
+        }
     }
 
     private fun handleInfoSyncPush(buffer: ByteArray, param: XC_MethodHook.MethodHookParam) {
