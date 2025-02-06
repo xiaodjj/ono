@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<moe.ono.ui.view.RadiusCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp"
+    app:rcv_topLeftRadiu="20dp"
+    app:rcv_topRightRadiu="20dp"
+    app:cardBackgroundColor="@color/card_bg">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/card_bg"
+        android:orientation="vertical">
+
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:text="原始消息"
+                    android:textSize="19sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/firstTextColor"
+                    android:paddingTop="5dp"
+                    />
+
+
+
+                <RadioGroup
+                    android:id="@+id/rg_type"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:orientation="horizontal">
+
+                    <RadioButton
+                        android:id="@+id/rb_pb"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="pb"
+                        android:textSize="15sp" />
+
+                    <RadioButton
+                        android:id="@+id/rb_pb_elem"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="pb (elem)"
+                        android:textSize="15sp"
+                        />
+
+                    <RadioButton
+                        android:id="@+id/rb_msg_record"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="MsgRecord"
+                        android:textSize="15sp"
+                        />
+
+
+                </RadioGroup>
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    app:cardCornerRadius="15dp"
+                    app:cardElevation="0dp"
+                    android:backgroundTint="@color/mask_bg">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:padding="5dp">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_copy"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="复制全部"
+                            android:textStyle="bold"
+                            app:cornerRadius="25dp"
+                            android:backgroundTint="#37FFFFFF"
+                            android:textColor="@color/firstTextColor"
+                            android:layout_marginLeft="10dp"
+                            android:layout_marginRight="10dp"
+                            android:layout_marginTop="10dp"
+                            />
+
+
+                        <moe.ono.ui.view.JsonViewer
+                            android:id="@+id/rv_json"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textIsSelectable="true"
+                            app:textColorBool="#F4511E"
+                            app:textColorNumber="#FF6D00"
+                            app:textColorKey="#2962FF"
+                            />
+
+                        <TextView
+                            android:id="@+id/tv_content"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textIsSelectable="true"
+                            android:visibility="gone"
+                            />
+
+                    </LinearLayout>
+
+
+
+                </androidx.cardview.widget.CardView>
+
+            </LinearLayout>
+
+
+        </ScrollView>
+    </LinearLayout>
+
+</moe.ono.ui.view.RadiusCardView>

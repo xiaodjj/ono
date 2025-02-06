@@ -2,7 +2,6 @@
  * @author FangYan
  * ctime: 2024.10.21
  */
-
 package moe.ono.hooks.protocol
 
 import android.util.Log
@@ -10,24 +9,11 @@ import moe.ono.service.QQInterfaces
 import com.google.protobuf.CodedOutputStream
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonArray
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.int
-import kotlinx.serialization.json.intOrNull
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.long
-import kotlinx.serialization.json.longOrNull
-import kotlinx.serialization.json.putJsonObject
+import kotlinx.serialization.json.*
 import moe.ono.BuildConfig
 import java.io.ByteArrayOutputStream
 import kotlin.random.Random
 import kotlin.random.nextUInt
-
 
 /**
  * Sends a message by constructing a JSON payload, encoding it to Protobuf, and sending it via QQInterfaces.
@@ -79,7 +65,6 @@ fun sendMessage(content: String, id: String, isGroupMsg: Boolean, type: String) 
                                 })
                             }
                             else -> {
-                                // Retain other keys as is
                                 put(key, value)
                             }
                         }
@@ -205,7 +190,7 @@ fun encodeMapToProtobuf(output: CodedOutputStream, obj: Map<Int, Any>) {
 
 /**
  * Parses a JsonElement into a Map<Int, Any>.
- * Converts hex strings to ByteArray when the path matches specific conditions.
+ * Converts hex strings to ByteArray when the string starts with "hex->" or when at a specific JSON path.
  *
  * @param jsonElement The JsonElement to parse.
  * @param path The current path in the JSON structure.
@@ -220,7 +205,7 @@ fun parseJsonToMap(jsonElement: JsonElement, path: List<String> = emptyList()): 
                 if (intKey != null) {
                     val currentPath = path + key
                     Log.d("${BuildConfig.TAG}!parse", "Current path: $currentPath")
-                    // The key is mapped to 2 only when the path is ['3', '1', '2']
+                    // 示例：当路径为 ["3", "1", "2"] 时，将 key 映射为 2；否则使用原来的 key
                     val mappedKey = if (currentPath == listOf("3", "1", "2")) 2 else intKey
                     when (value) {
                         is JsonObject -> {
@@ -233,12 +218,18 @@ fun parseJsonToMap(jsonElement: JsonElement, path: List<String> = emptyList()): 
                         is JsonPrimitive -> {
                             val content = value.content
                             if (value.isString) {
-                                // TODO: ADAPTS the new hex sending form like "hex-> [HexString]"
-                                if ((currentPath.takeLast(2) == listOf("5", "2") && isHexString(content)) || (currentPath.takeLast(2) == listOf("5", "2") && content.startsWith("hex->"))) {
-                                    // Convert hex string to ByteArray
+                                if (content.startsWith("hex->")) {
+                                    val hexStr = content.removePrefix("hex->")
+                                    if (isHexString(hexStr)) {
+                                        Log.d("${BuildConfig.TAG}!hexConversion", "Converting hex string at path $currentPath")
+                                        resultMap[mappedKey] = hexStringToByteArray(hexStr)
+                                    } else {
+                                        resultMap[mappedKey] = content
+                                    }
+                                }
+                                else if (currentPath.takeLast(2) == listOf("5", "2") && isHexString(content)) {
                                     Log.d("${BuildConfig.TAG}!hexConversion", "Converting hex string at path $currentPath")
-                                    val byteArray = hexStringToByteArray(content)
-                                    resultMap[mappedKey] = byteArray
+                                    resultMap[mappedKey] = hexStringToByteArray(content)
                                 } else {
                                     resultMap[mappedKey] = content
                                 }

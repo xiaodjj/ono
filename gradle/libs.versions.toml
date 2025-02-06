@@ -1,5 +1,6 @@
 [versions]
 agp = "8.7.2"
+androidJsonViewer = "v1.1"
 androidxJunit = "1.2.1"
 composeBom = "2024.10.01"
 composeBomVersion = "2024.10.01"
@@ -8,6 +9,7 @@ dexkit = "2.0.2"
 espressoCoreVersion = "3.6.1"
 exifinterface = "1.3.7"
 gson = "2.10.1"
+jsonviewer = "1.0.7"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
@@ -40,12 +42,16 @@ materialDialog = "3.3.0"
 okhttpVersion = "4.12.0"
 
 [libraries]
+android-json-viewer = { module = "com.github.pvarry:android-json-viewer", version.ref = "androidJsonViewer" }
 android-tools = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+#noinspection SimilarGradleDependency
 androidx-compose-bom-v20240902 = { module = "androidx.compose:compose-bom", version.ref = "composeBomVersion" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 #noinspection SimilarGradleDependency
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
+jsonviewer = { module = "com.github.smuyyh:JsonViewer", version.ref = "jsonviewer" }
 markdown-core = { module = "io.noties.markwon:core", version.ref = "core" }
 dexkit = { module = "org.luckypray:dexkit", version.ref = "dexkit" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }

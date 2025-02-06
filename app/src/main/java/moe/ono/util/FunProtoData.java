@@ -1,7 +1,5 @@
 package moe.ono.util;
 
-import android.util.Log;
-
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
 
@@ -10,6 +8,7 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -52,37 +51,65 @@ public class FunProtoData {
     }
     public void fromBytes(byte[] b) throws IOException {
         CodedInputStream in = CodedInputStream.newInstance(b);
-        while (in.getBytesUntilLimit() > 0){
+        while (in.getBytesUntilLimit() > 0) {
             int tag = in.readTag();
             int fieldNumber = tag >>> 3;
             int wireType = tag & 7;
-            if (wireType == 4 || wireType == 3 || wireType > 5) throw new IOException("Unexpected wireType: "+wireType);
-            switch (wireType){
+            if (wireType == 4 || wireType == 3 || wireType > 5) throw new IOException("Unexpected wireType: " + wireType);
+            switch (wireType) {
                 case 0:
                     putValue(fieldNumber, in.readInt64());
                     break;
                 case 1:
                     putValue(fieldNumber, in.readRawVarint64());
                     break;
-                case 2:
+                case 2: {
                     byte[] subBytes = in.readByteArray();
                     try {
                         FunProtoData sub_data = new FunProtoData();
                         sub_data.fromBytes(subBytes);
                         putValue(fieldNumber, sub_data);
-                    }catch (Exception e){
-                        putValue(fieldNumber, new String(subBytes));
+                    } catch (Exception e) {
+                        try {
+                            String decoded = new String(subBytes, StandardCharsets.UTF_8);
+                            byte[] reEncoded = decoded.getBytes(StandardCharsets.UTF_8);
+                            if (arraysEqual(subBytes, reEncoded)) {
+                                putValue(fieldNumber, decoded);
+                            } else {
+                                putValue(fieldNumber, "hex->" + bytesToHex(subBytes));
+                            }
+                        } catch (Exception e2) {
+                            putValue(fieldNumber, "hex->" + bytesToHex(subBytes));
+                        }
                     }
                     break;
+                }
                 case 5:
                     putValue(fieldNumber, in.readFixed32());
                     break;
                 default:
-                    putValue(fieldNumber,"Unknown wireType: "+wireType);
+                    putValue(fieldNumber, "Unknown wireType: " + wireType);
                     break;
             }
         }
     }
+
+    private static boolean arraysEqual(byte[] a1, byte[] a2) {
+        if (a1.length != a2.length) return false;
+        for (int i = 0; i < a1.length; i++) {
+            if (a1[i] != a2[i]) return false;
+        }
+        return true;
+    }
+
+    private static String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02X", b & 0xFF));
+        }
+        return sb.toString();
+    }
+
     public JSONObject toJSON()throws Exception{
         JSONObject obj = new JSONObject();
         for (Integer k_index : values.keySet()){

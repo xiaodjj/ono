@@ -27,13 +27,7 @@ dependencyResolutionManagement {
                 includeGroupByRegex("androidx.*")
             }
         }
-        maven("https://jitpack.io") {
-            content {
-                includeGroup("com.github.livefront.sealed-enum")
-                includeGroup("com.github.MatteoBattilana")
-                includeGroup("com.github.plattysoft")
-            }
-        }
+        maven("https://jitpack.io")
         maven("https://api.xposed.info/") {
             content {
                 includeGroup("de.robv.android.xposed")

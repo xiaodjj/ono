@@ -4,9 +4,7 @@ import com.tencent.qphone.base.remote.FromServiceMsg
 import com.tencent.qphone.base.remote.ToServiceMsg
 import moe.ono.config.CacheConfig.setRKeyGroup
 import moe.ono.config.CacheConfig.setRKeyPrivate
-import moe.ono.creator.FakeFileSender
 import moe.ono.creator.QQMessageFetcherResultDialog
-import moe.ono.creator.QQMessageTrackerResultDialog
 import moe.ono.hooks._base.ApiHookItem
 import moe.ono.hooks._core.annotation.HookItem
 import moe.ono.reflex.XField
@@ -19,9 +17,9 @@ import moe.ono.util.SyncUtils
 import org.json.JSONObject
 import java.util.Arrays
 
-@HookItem(path = "API/更新RKey")
+@HookItem(path = "API/QQMsgRespHandler")
 class QQMsgRespHandler : ApiHookItem() {
-    private fun update(classLoader: ClassLoader) {
+    private fun update() {
         hookBefore(XMethod.clz("mqq.app.msghandle.MsgRespHandler").name("dispatchRespMsg").ignoreParam().get()) { param ->
             val serviceMsg: ToServiceMsg = XField.obj(param.args[1]).name("toServiceMsg").get()
             val fromServiceMsg: FromServiceMsg =
@@ -64,6 +62,20 @@ class QQMsgRespHandler : ApiHookItem() {
                 SyncUtils.runOnUiThread { QQMessageFetcherResultDialog.createView(
                     CommonContextWrapper.createAppCompatContext(ContextUtils.getCurrentActivity()), obj) }
 
+            } else if ("MessageSvc.PbGetOneDayRoamMsg" == fromServiceMsg.serviceCmd) {
+                Logger.d("on MessageSvc.PbGetOneDayRoamMsg")
+                val data = FunProtoData()
+                data.fromBytes(
+                    getUnpPackage(
+                        fromServiceMsg.wupBuffer
+                    )
+                )
+
+                val obj: JSONObject = data.toJSON()
+
+                Logger.d("obj: " + obj.toString(4))
+                SyncUtils.runOnUiThread { QQMessageFetcherResultDialog.createView(
+                    CommonContextWrapper.createAppCompatContext(ContextUtils.getCurrentActivity()), obj) }
             }
         }
 
@@ -86,6 +98,6 @@ class QQMsgRespHandler : ApiHookItem() {
 
     @Throws(Throwable::class)
     override fun load(classLoader: ClassLoader) {
-        update(classLoader)
+        update()
     }
 }

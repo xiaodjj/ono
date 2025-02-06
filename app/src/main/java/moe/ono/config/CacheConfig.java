@@ -3,6 +3,8 @@ package moe.ono.config;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 
+import com.tencent.qqnt.kernel.nativeinterface.MsgRecord;
+
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -25,6 +27,7 @@ public class CacheConfig {
     private static String itemid;
     private static Class x5WebViewClass;
     private static Class x5ValueCallbackClass;
+    private static MsgRecord msgRecord;
 
     public static String getRKeyGroup() {
         if (rkeyGroup == null){
@@ -75,6 +78,16 @@ public class CacheConfig {
         Objects.requireNonNull(clazz);
         CacheConfig.x5ValueCallbackClass = clazz;
     }
+
+    public static MsgRecord getMsgRecord() {
+        return CacheConfig.msgRecord;
+    }
+
+    public static void setMsgRecord(MsgRecord msgRecord) {
+        Objects.requireNonNull(msgRecord);
+        CacheConfig.msgRecord = msgRecord;
+    }
+
 
     public static Class getX5ValueCallbackClass() {
         return CacheConfig.x5ValueCallbackClass;

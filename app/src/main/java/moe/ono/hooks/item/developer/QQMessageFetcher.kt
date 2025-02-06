@@ -9,6 +9,7 @@ import moe.ono.R
 import moe.ono.bridge.ntapi.ChatTypeConstants.C2C
 import moe.ono.bridge.ntapi.ChatTypeConstants.GROUP
 import moe.ono.bridge.ntapi.MsgServiceHelper
+import moe.ono.config.CacheConfig.setMsgRecord
 import moe.ono.hooks._base.BaseSwitchFunctionHookItem
 import moe.ono.hooks._core.annotation.HookItem
 import moe.ono.hooks.base.util.Toasts
@@ -55,10 +56,12 @@ class QQMessageFetcher : BaseSwitchFunctionHookItem(), OnMenuBuilder {
 
                                 when (chatType) {
                                     C2C -> {
-                                        Toasts.info(ContextUtils.getCurrentActivity(), "没写")
+                                        pullC2CMsg(msgRecord)
+                                        setMsgRecord(msgRecord)
                                     }
                                     GROUP -> {
                                         pullGroupMsg(msgRecord)
+                                        setMsgRecord(msgRecord)
                                     }
                                     else -> {
                                         Toasts.info(ContextUtils.getCurrentActivity(), "不支持的聊天类型")
@@ -87,7 +90,14 @@ class QQMessageFetcher : BaseSwitchFunctionHookItem(), OnMenuBuilder {
         QQInterfaces.sendBuffer("MessageSvc.PbGetGroupMsg", true, byteArray)
     }
 
-    fun pullC2CMsg(){
+    private fun pullC2CMsg(msgRecord: MsgRecord){
+        val json = Json { ignoreUnknownKeys = true }
+        val basePbContentString = """{"1": ${msgRecord.peerUin}, "2": ${msgRecord.msgTime}, "3": 0, "4": 1}"""
+        val parsedJsonElement: JsonElement = json.parseToJsonElement(basePbContentString)
+        val map = parseJsonToMap(parsedJsonElement)
+        val byteArray = encodeMessage(map)
 
+
+        QQInterfaces.sendBuffer("MessageSvc.PbGetOneDayRoamMsg", true, byteArray)
     }
 }
