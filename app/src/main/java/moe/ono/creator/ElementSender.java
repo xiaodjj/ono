@@ -1,8 +1,12 @@
 package moe.ono.creator;
 
+import static moe.ono.bridge.ntapi.ChatTypeConstants.C2C;
+import static moe.ono.bridge.ntapi.ChatTypeConstants.GROUP;
+import static moe.ono.bridge.ntapi.RelationNTUinAndUidApi.getUinFromUid;
 import static moe.ono.builder.MsgBuilder.nt_build_ark;
 import static moe.ono.builder.MsgBuilder.nt_build_text;
 import static moe.ono.common.CheckUtils.isJSON;
+import static moe.ono.util.Utils.bytesToHex;
 import static moe.ono.util.analytics.ActionReporter.reportVisitor;
 import static moe.ono.util.Session.getContact;
 import static moe.ono.util.Session.getCurrentChatType;
@@ -47,6 +51,7 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.dx.util.ByteArray;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -63,6 +68,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -76,6 +82,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPOutputStream;
 
 import moe.ono.R;
 import moe.ono.bridge.Nt_kernel_bridge;
@@ -86,13 +93,15 @@ import moe.ono.util.AppRuntimeHelper;
 import moe.ono.ui.CommonContextWrapper;
 import moe.ono.util.Logger;
 import moe.ono.util.SafUtils;
+import moe.ono.util.Session;
+import moe.ono.util.SyncUtils;
 
-@SuppressLint("ResourceType")
+@SuppressLint({"ResourceType", "StaticFieldLeak"})
 public class ElementSender extends BottomPopupView {
     private final List<String> presetelems; // 存储预设元素的列表
     private final Map<String, String> elemContentMap; // 存储元素名称和内容的映射
     private final SharedPreferences sharedPreferences;
-    private EditText editText;
+    private static EditText editText;
     private static String preContent;
     private static Dialog elem_dialog = null;
     private static View decorView;
@@ -102,6 +111,11 @@ public class ElementSender extends BottomPopupView {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Runnable highlightRunnable;
     private final int previousLength = 0;
+    public static String peer;
+    public static int chatType;
+    public static ContactCompat contactCompat;
+    private static RadioGroup mRgSendType;
+    private static RadioGroup mRgSendBy;
 
 
 
@@ -136,7 +150,13 @@ public class ElementSender extends BottomPopupView {
     protected void onCreate() {
         super.onCreate();
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            RadioGroup mRgSendType = findViewById(R.id.rg_send_type);
+            peer = getCurrentPeerID();
+            chatType = Objects.requireNonNull(getContact()).getChatType();
+            contactCompat = getContact();
+
+            mRgSendType = findViewById(R.id.rg_send_type);
+            mRgSendBy = findViewById(R.id.rg_send_by);
+
             editText = findViewById(R.id.content);
             TextView tvTarget = findViewById(R.id.tv_target);
             Button btnSend = findViewById(R.id.btn_send);
@@ -169,12 +189,13 @@ public class ElementSender extends BottomPopupView {
             }
 
             int chat_type = getCurrentChatType();
+
             if (chat_type == 1) {
-                tvTarget.setText("当前会话: " + getCurrentPeerID() + " | " + "好友");
+                tvTarget.setText("当前会话: " + peer + " | " + "好友");
             } else if (chat_type == 2) {
-                tvTarget.setText("当前会话: " + getCurrentPeerID() + " | " + "群聊");
+                tvTarget.setText("当前会话: " + peer + " | " + "群聊");
             } else {
-                tvTarget.setText("当前会话: " + getCurrentPeerID() + " | " + "未知");
+                tvTarget.setText("当前会话: " + peer + " | " + "未知");
             }
 
             btnCustom.setOnClickListener(v -> showCustomElemDialog());
@@ -223,6 +244,8 @@ public class ElementSender extends BottomPopupView {
                     Toasts.info(getContext(), "你什么都没输入呢");
                     return;
                 }
+
+                // ark
                 if (send_type.equals("ark")) {
                     try {
                         send_ark_msg(text, contactCompat);
@@ -243,16 +266,58 @@ public class ElementSender extends BottomPopupView {
                         return;
                     }
 
-                    if (chat_type == 1) {
-                        QPacketHelperKt.sendMessage(text, getCurrentPeerID(), false, send_type);
-                    } else if (chat_type == 2) {
-                        QPacketHelperKt.sendMessage(text, getCurrentPeerID(), true, send_type);
-                    } else {
+                    int rbSendBy = mRgSendBy.getCheckedRadioButtonId();
+                    if (chat_type != 1 && chat_type != 2) {
                         Toasts.error(getContext(), "失败");
                         return;
                     }
+
+                    if (rbSendBy == R.id.rb_send_by_directly) {
+                        QPacketHelperKt.sendMessage(text, peer, chatType == GROUP, send_type);
+                    } else if (rbSendBy == R.id.rb_send_by_longmsg) {
+                        String data = "{\n" +
+                                "  \"2\": {\n" +
+                                "    \"1\": \"MultiMsg\",\n" +
+                                "    \"2\": {\n" +
+                                "      \"1\": [\n" +
+                                "        {\n" +
+                                "          \"3\": {\n" +
+                                "            \"1\": {\n" +
+                                "              \"2\": " + text +
+                                "            }\n" +
+                                "          }\n" +
+                                "        }\n" +
+                                "      ]\n" +
+                                "    }\n" +
+                                "  }\n" +
+                                "}".trim();
+                        byte[] protoBytes = QPacketHelperKt.buildMessage(data);
+                        byte[] compressedData = compressData(protoBytes);
+
+                        long target = Long.parseLong(chatType == GROUP ? peer : getUinFromUid(peer));
+
+                        String json = "{\n" +
+                                "  \"2\": {\n" +
+                                "    \"1\": " + (chatType == C2C ? 1 : 3) + ",\n" +
+                                "    \"2\": {\n" +
+                                "      \"2\": "+ target +"\n" +
+                                "    },\n" +
+                                "    \"4\": \"hex->"+bytesToHex(compressedData)+"\"\n" +
+                                "  },\n" +
+                                "  \"15\": {\n" +
+                                "    \"1\": 4,\n" +
+                                "    \"2\": 2,\n" +
+                                "    \"3\": 9,\n" +
+                                "    \"4\": 0\n" +
+                                "  }\n" +
+                                "}".trim();
+
+                        Logger.d("ElementSender-send-by-longmsg", json);
+                        QPacketHelperKt.sendPacket("trpc.group.long_msg_interface.MsgService.SsoSendLongMsg", json);
+                    }
                     Toasts.success(getContext(), "请求成功");
-                    dialog.dismiss();
+
+                    if (rbSendBy == R.id.rb_send_by_directly) dialog.dismiss();
                     fadeOutAndClearBlur(decorView);
                 } catch (Exception e) {
                     Logger.e("未适配的消息结构", e);
@@ -271,9 +336,9 @@ public class ElementSender extends BottomPopupView {
                 ContactCompat contactCompat = getContact();
                 try {
                     if (chat_type == 1) {
-                        showRepeatSendDialog(text, getCurrentPeerID(), false, send_type, contactCompat);
+                        showRepeatSendDialog(text, peer, false, send_type, contactCompat);
                     } else if (chat_type == 2) {
-                        showRepeatSendDialog(text, getCurrentPeerID(), true, send_type, contactCompat);
+                        showRepeatSendDialog(text, peer, true, send_type, contactCompat);
                     } else {
                         Toasts.error(getContext(), "失败");
                         return true;
@@ -495,6 +560,19 @@ public class ElementSender extends BottomPopupView {
     }
 
 
+    public static void setContent(String content) {
+        SyncUtils.runOnUiThread(() -> {
+            try {
+                editText.setText(content);
+                mRgSendType.check(R.id.rb_element);
+                mRgSendBy.check(R.id.rb_send_by_directly);
+            } catch (Exception e) {
+                Logger.e(e);
+            }
+        });
+
+
+    }
 
 
     public static void send_ark_msg(String text, ContactCompat contactCompat) throws JSONException {
@@ -831,6 +909,14 @@ public class ElementSender extends BottomPopupView {
         elemContentMap.remove(element);
 
         savePresetElem();
+    }
+
+    public static byte[] compressData(byte[] protoBytes) throws IOException {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try (GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputStream)) {
+            gzipOutputStream.write(protoBytes);
+        }
+        return outputStream.toByteArray();
     }
 
 

@@ -16,6 +16,7 @@ import moe.ono.hooks.base.util.Toasts
 import moe.ono.hooks.dispatcher.OnMenuBuilder
 import moe.ono.hooks.protocol.encodeMessage
 import moe.ono.hooks.protocol.parseJsonToMap
+import moe.ono.hooks.protocol.sendPacket
 import moe.ono.reflex.Reflex
 import moe.ono.service.QQInterfaces
 import moe.ono.util.AppRuntimeHelper
@@ -91,13 +92,6 @@ class QQMessageFetcher : BaseSwitchFunctionHookItem(), OnMenuBuilder {
     }
 
     private fun pullC2CMsg(msgRecord: MsgRecord){
-        val json = Json { ignoreUnknownKeys = true }
-        val basePbContentString = """{"1": ${msgRecord.peerUin}, "2": ${msgRecord.msgTime}, "3": 0, "4": 1}"""
-        val parsedJsonElement: JsonElement = json.parseToJsonElement(basePbContentString)
-        val map = parseJsonToMap(parsedJsonElement)
-        val byteArray = encodeMessage(map)
-
-
-        QQInterfaces.sendBuffer("MessageSvc.PbGetOneDayRoamMsg", true, byteArray)
+        sendPacket("MessageSvc.PbGetOneDayRoamMsg", """{"1": ${msgRecord.peerUin}, "2": ${msgRecord.msgTime}, "3": 0, "4": 1}""")
     }
 }

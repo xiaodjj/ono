@@ -106,14 +106,8 @@
 
 
 
-        </LinearLayout>
 
-        <View
-            android:id="@+id/view_cut"
-            android:layout_width="match_parent"
-            android:layout_height="0.5dp"
-            android:layout_marginTop="10dp"
-            />
+        </LinearLayout>
 
 
 
@@ -135,12 +129,46 @@
                 android:backgroundTint="@color/mask_bg">
 
 
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:padding="10dp">
+
+                    <RadioGroup
+                        android:id="@+id/rg_send_by"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:orientation="horizontal">
+
+                        <RadioButton
+                            android:id="@+id/rb_send_by_directly"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:text="direct"
+                            android:textSize="15sp" />
+
+                        <RadioButton
+                            android:id="@+id/rb_send_by_longmsg"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="longmsg"
+                            android:textSize="15sp"
+                            />
+
+                        <RadioButton
+                            android:id="@+id/rb_send_by_forwarding"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="forward"
+                            android:textSize="15sp" />
+
+                    </RadioGroup>
+
 
                     <LinearLayout
                         android:layout_width="match_parent"

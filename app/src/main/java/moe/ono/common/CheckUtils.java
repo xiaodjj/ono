@@ -3,6 +3,10 @@ package moe.ono.common;
 import com.alibaba.fastjson2.JSON;
 import com.google.gson.JsonParser;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class CheckUtils {
 
     private CheckUtils() {
@@ -25,10 +29,19 @@ public class CheckUtils {
     }
 
     public static boolean isJSON(String text) {
+        if (text == null || text.isEmpty()) {
+            return false;
+        }
         try {
-            JSON.parse(text);
+            if (text.trim().startsWith("{")) {
+                new JSONObject(text);
+            } else if (text.trim().startsWith("[")) {
+                new JSONArray(text);
+            } else {
+                return false;
+            }
             return true;
-        } catch (Exception e) {
+        } catch (JSONException e) {
             return false;
         }
     }

@@ -98,6 +98,38 @@ fun sendMessage(content: String, id: String, isGroupMsg: Boolean, type: String) 
 }
 
 /**
+ * Sends a packet through the QQ interfaces.
+ *
+ * This function takes a command and a content string, parses the content into a JSON element,
+ * and then converts it into a Map structure. After that, it encodes this Map into a byte array
+ * using the [encodeMessage] function and sends it via the specified command [cmd] through the QQ interfaces.
+ *
+ * @param cmd The command string for sending the packet, indicating to the QQ interface how to process the packet.
+ * @param content A JSON formatted string containing the data content to be sent.
+ */
+fun sendPacket(cmd: String, content: String) {
+    QQInterfaces.sendBuffer(cmd, true, buildMessage(content))
+}
+
+/**
+ * Builds a message from the provided content string to be sent via QQ interfaces.
+ *
+ * This function takes a JSON formatted string as input, parses it into a [JsonElement],
+ * and converts this element into a Map structure. The Map is then encoded into a byte array,
+ * which can be used by QQ interfaces for sending messages.
+ *
+ * @param content A JSON formatted string that contains the data content intended to be sent.
+ * @return A [ByteArray] representing the encoded message ready to be transmitted through QQ interfaces.
+ */
+fun buildMessage(content: String): ByteArray {
+    val json = Json { ignoreUnknownKeys = true }
+    val parsedJsonElement: JsonElement = json.parseToJsonElement(content)
+    val map = parseJsonToMap(parsedJsonElement)
+    return encodeMessage(map)
+}
+
+
+/**
  * Builds the base JSON content based on whether the message is a group message.
  *
  * @param id The identifier for the message.
