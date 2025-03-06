@@ -12,7 +12,7 @@ import de.robv.android.xposed.XposedHelpers
 import moe.ono.config.CacheConfig
 import moe.ono.config.ConfigManager
 import moe.ono.constants.Constants
-import moe.ono.creator.ElementSender
+import moe.ono.creator.PacketHelperDialog
 import moe.ono.creator.FakeFileSender
 import moe.ono.creator.QQMessageTrackerDialog
 import moe.ono.hooks.XHook
@@ -98,7 +98,7 @@ class BottomShortcutMenu : BaseSwitchFunctionHookItem() {
             ) { _: Int, text: String? ->
                 when (text) {
                     "QQPacketHelper" -> SyncUtils.runOnUiThread {
-                        ElementSender.createView(
+                        PacketHelperDialog.createView(
                             null,
                             view.context,
                             ""

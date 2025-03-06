@@ -55,18 +55,11 @@ fun sendMessage(content: String, id: String, isGroupMsg: Boolean, type: String) 
                     basePbContent.forEach { (key, value) ->
                         when (key) {
                             "3" -> {
-                                // Navigate to ["3"]["1"]
-                                val path1 = value.jsonObject["1"]?.jsonObject?.toMutableMap() ?: mutableMapOf<String, JsonElement>()
-                                // Set ["3"]["1"]["2"] to the new JsonArray
+                                val path1 = value.jsonObject["1"]?.jsonObject?.toMutableMap() ?: mutableMapOf()
                                 path1["2"] = jsonArray
-                                // Put the modified nested object back
-                                put("3", buildJsonObject {
-                                    put("1", JsonObject(path1))
-                                })
+                                put("3", buildJsonObject { put("1", JsonObject(path1)) })
                             }
-                            else -> {
-                                put(key, value)
-                            }
+                            else -> put(key, value)
                         }
                     }
                 }
@@ -101,25 +94,22 @@ fun sendMessage(content: String, id: String, isGroupMsg: Boolean, type: String) 
  * Sends a packet through the QQ interfaces.
  *
  * This function takes a command and a content string, parses the content into a JSON element,
- * and then converts it into a Map structure. After that, it encodes this Map into a byte array
- * using the [encodeMessage] function and sends it via the specified command [cmd] through the QQ interfaces.
+ * converts it into a Map structure, encodes it into a byte array, and then sends it via QQInterfaces.
  *
- * @param cmd The command string for sending the packet, indicating to the QQ interface how to process the packet.
- * @param content A JSON formatted string containing the data content to be sent.
+ * @param cmd The command string.
+ * @param content A JSON formatted string containing the data to be sent.
  */
 fun sendPacket(cmd: String, content: String) {
     QQInterfaces.sendBuffer(cmd, true, buildMessage(content))
 }
 
 /**
- * Builds a message from the provided content string to be sent via QQ interfaces.
+ * Builds a message from the provided content string.
  *
- * This function takes a JSON formatted string as input, parses it into a [JsonElement],
- * and converts this element into a Map structure. The Map is then encoded into a byte array,
- * which can be used by QQ interfaces for sending messages.
+ * Parses the JSON content into a Map structure and encodes it into a ByteArray.
  *
- * @param content A JSON formatted string that contains the data content intended to be sent.
- * @return A [ByteArray] representing the encoded message ready to be transmitted through QQ interfaces.
+ * @param content A JSON formatted string.
+ * @return A ByteArray representing the encoded message.
  */
 fun buildMessage(content: String): ByteArray {
     val json = Json { ignoreUnknownKeys = true }
@@ -128,11 +118,10 @@ fun buildMessage(content: String): ByteArray {
     return encodeMessage(map)
 }
 
-
 /**
- * Builds the base JSON content based on whether the message is a group message.
+ * Builds the base JSON content according to whether the message is a group message.
  *
- * @param id The identifier for the message.
+ * @param id The message identifier.
  * @param isGroupMsg Indicates if the message is a group message.
  * @return The base JsonObject.
  */
@@ -165,7 +154,7 @@ fun buildBasePbContent(id: String, isGroupMsg: Boolean): JsonObject = buildJsonO
  * Encodes a map into a Protobuf byte array.
  *
  * @param obj The map to encode.
- * @return The encoded byte array.
+ * @return The encoded ByteArray.
  */
 fun encodeMessage(obj: Map<Int, Any>): ByteArray {
     ByteArrayOutputStream().use { baos ->
@@ -178,6 +167,9 @@ fun encodeMessage(obj: Map<Int, Any>): ByteArray {
 
 /**
  * Recursively encodes a map into Protobuf format.
+ *
+ * Extended support for List types: if a list item is a Map, encode it as a submessage;
+ * if a list item is an Int, Long, String, or ByteArray, call the corresponding write method directly.
  *
  * @param output The CodedOutputStream to write to.
  * @param obj The map to encode.
@@ -202,31 +194,38 @@ fun encodeMapToProtobuf(output: CodedOutputStream, obj: Map<Int, Any>) {
             }
             is List<*> -> {
                 value.forEach { item ->
-                    if (item is Map<*, *>) {
-                        @Suppress("UNCHECKED_CAST")
-                        val nestedMessage = encodeMessage(item as Map<Int, Any>)
-                        output.writeTag(tag, com.google.protobuf.WireFormat.WIRETYPE_LENGTH_DELIMITED)
-                        output.writeUInt32NoTag(nestedMessage.size)
-                        output.writeRawBytes(nestedMessage)
-                    } else {
-                        throw IllegalArgumentException("Unsupported list item type: ${item?.javaClass}")
+                    when (item) {
+                        is Map<*, *> -> {
+                            @Suppress("UNCHECKED_CAST")
+                            val nestedMessage = encodeMessage(item as Map<Int, Any>)
+                            output.writeTag(tag, com.google.protobuf.WireFormat.WIRETYPE_LENGTH_DELIMITED)
+                            output.writeUInt32NoTag(nestedMessage.size)
+                            output.writeRawBytes(nestedMessage)
+                        }
+                        is Int -> output.writeInt32(tag, item)
+                        is Long -> output.writeInt64(tag, item)
+                        is String -> output.writeString(tag, item)
+                        is ByteArray -> {
+                            output.writeTag(tag, com.google.protobuf.WireFormat.WIRETYPE_LENGTH_DELIMITED)
+                            output.writeUInt32NoTag(item.size)
+                            output.writeRawBytes(item)
+                        }
+                        else -> throw IllegalArgumentException("Unsupported list item type: ${item?.javaClass}")
                     }
                 }
             }
-            else -> {
-                throw IllegalArgumentException("Unsupported type: ${value.javaClass}")
-            }
+            else -> throw IllegalArgumentException("Unsupported type: ${value.javaClass}")
         }
     }
 }
 
 /**
  * Parses a JsonElement into a Map<Int, Any>.
- * Converts hex strings to ByteArray when the string starts with "hex->" or when at a specific JSON path.
+ * During parsing, strings that start with "hex->" or hex strings located at specific JSON paths are converted to a ByteArray.
  *
  * @param jsonElement The JsonElement to parse.
- * @param path The current path in the JSON structure.
- * @return The resulting map.
+ * @param path The current JSON path (used for debugging and special handling).
+ * @return The parsed Map, where keys are of type Int and values are of type Any.
  */
 fun parseJsonToMap(jsonElement: JsonElement, path: List<String> = emptyList()): Map<Int, Any> {
     val resultMap = mutableMapOf<Int, Any>()
@@ -237,14 +236,30 @@ fun parseJsonToMap(jsonElement: JsonElement, path: List<String> = emptyList()): 
                 if (intKey != null) {
                     val currentPath = path + key
                     Log.d("${BuildConfig.TAG}!parse", "Current path: $currentPath")
-                    // 示例：当路径为 ["3", "1", "2"] 时，将 key 映射为 2；否则使用原来的 key
                     val mappedKey = if (currentPath == listOf("3", "1", "2")) 2 else intKey
                     when (value) {
                         is JsonObject -> {
                             resultMap[mappedKey] = parseJsonToMap(value, currentPath)
                         }
                         is JsonArray -> {
-                            val list = value.map { parseJsonToMap(it, currentPath) }
+                            val list = value.mapIndexed { index, element ->
+                                when (element) {
+                                    is JsonObject, is JsonArray -> parseJsonToMap(element, currentPath + (index + 1).toString())
+                                    is JsonPrimitive -> {
+                                        val primitiveValue = if (element.isString) {
+                                            element.content
+                                        } else if (element.intOrNull != null) {
+                                            element.int
+                                        } else if (element.longOrNull != null) {
+                                            element.long
+                                        } else {
+                                            element.content
+                                        }
+                                        mapOf(1 to primitiveValue)
+                                    }
+                                    else -> throw IllegalArgumentException("Unsupported JSON element in array: $element")
+                                }
+                            }
                             resultMap[mappedKey] = list
                         }
                         is JsonPrimitive -> {
@@ -258,8 +273,7 @@ fun parseJsonToMap(jsonElement: JsonElement, path: List<String> = emptyList()): 
                                     } else {
                                         resultMap[mappedKey] = content
                                     }
-                                }
-                                else if (currentPath.takeLast(2) == listOf("5", "2") && isHexString(content)) {
+                                } else if (currentPath.takeLast(2) == listOf("5", "2") && isHexString(content)) {
                                     Log.d("${BuildConfig.TAG}!hexConversion", "Converting hex string at path $currentPath")
                                     resultMap[mappedKey] = hexStringToByteArray(content)
                                 } else {
@@ -282,9 +296,36 @@ fun parseJsonToMap(jsonElement: JsonElement, path: List<String> = emptyList()): 
         }
         is JsonArray -> {
             jsonElement.forEachIndexed { index, element ->
-                val parsedMap = parseJsonToMap(element, path + (index + 1).toString())
-                resultMap[index + 1] = parsedMap
+                val parsedValue = when (element) {
+                    is JsonObject, is JsonArray -> parseJsonToMap(element, path + (index + 1).toString())
+                    is JsonPrimitive -> {
+                        val primitiveValue = if (element.isString) {
+                            element.content
+                        } else if (element.intOrNull != null) {
+                            element.int
+                        } else if (element.longOrNull != null) {
+                            element.long
+                        } else {
+                            element.content
+                        }
+                        mapOf(1 to primitiveValue)
+                    }
+                    else -> throw IllegalArgumentException("Unsupported JSON element in array: $element")
+                }
+                resultMap[index + 1] = parsedValue
             }
+        }
+        is JsonPrimitive -> {
+            val primitiveValue = if (jsonElement.isString) {
+                jsonElement.content
+            } else if (jsonElement.intOrNull != null) {
+                jsonElement.int
+            } else if (jsonElement.longOrNull != null) {
+                jsonElement.long
+            } else {
+                jsonElement.content
+            }
+            return mapOf(1 to primitiveValue)
         }
         else -> throw IllegalArgumentException("Unsupported JSON element: $jsonElement")
     }
@@ -295,7 +336,7 @@ fun parseJsonToMap(jsonElement: JsonElement, path: List<String> = emptyList()): 
  * Checks if a string is a valid hex string.
  *
  * @param s The string to check.
- * @return True if the string is a hex string, false otherwise.
+ * @return True if the string is a valid hex string, false otherwise.
  */
 fun isHexString(s: String): Boolean {
     val regex = Regex("^[0-9a-fA-F]+$")

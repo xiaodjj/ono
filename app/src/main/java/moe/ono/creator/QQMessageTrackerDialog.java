@@ -1,25 +1,20 @@
 package moe.ono.creator;
 
-import static moe.ono.creator.ElementSender.send_ark_msg;
+import static moe.ono.creator.PacketHelperDialog.send_ark_msg;
 import static moe.ono.util.Session.getContact;
 import static moe.ono.util.Session.getCurrentChatType;
 import static moe.ono.util.Session.getCurrentPeerID;
 import static moe.ono.util.SyncUtils.runOnUiThread;
 import static moe.ono.util.analytics.ActionReporter.reportVisitor;
-import static moe.ono.util.api.ArkEnv.GET_CARD_DATA_ENDPOINT;
 import static moe.ono.util.api.ArkEnv.getAuthAPI;
-import static rikka.core.util.ContextUtils.requireActivity;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Base64;
-import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -40,9 +35,6 @@ import moe.ono.R;
 import moe.ono.bridge.kernelcompat.ContactCompat;
 import moe.ono.common.CheckUtils;
 import moe.ono.config.ONOConf;
-import moe.ono.hooks.base.util.Toasts;
-import moe.ono.hooks.protocol.QFakeFileHelperKt;
-import moe.ono.hooks.protocol.QPacketHelperKt;
 import moe.ono.ui.CommonContextWrapper;
 import moe.ono.ui.view.LoadingButton;
 import moe.ono.util.AppRuntimeHelper;

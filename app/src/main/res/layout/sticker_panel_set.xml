@@ -141,6 +141,7 @@
                     android:layout_marginStart="10dp"
                     android:id="@+id/sticker_panel_set_rb_show_never"
                     android:text="总是显示静态图"/>
+
             </RadioGroup>
 
 

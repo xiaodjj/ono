@@ -15,7 +15,7 @@ import androidx.annotation.NonNull;
 
 import java.lang.reflect.Field;
 
-import moe.ono.creator.ElementSender;
+import moe.ono.creator.PacketHelperDialog;
 import moe.ono.dexkit.TargetManager;
 import moe.ono.hooks._base.ApiHookItem;
 import moe.ono.hooks._core.annotation.HookItem;
@@ -50,7 +50,7 @@ public class QQUpdateInputRoot extends ApiHookItem {
             if (sendBtn != null && editText != null && inputRoot != null){
                 EditText finalEditText = editText;
                 sendBtn.setOnLongClickListener(v -> {
-                    runOnUiThread(() -> ElementSender.createView(null, v.getContext(), finalEditText.getText().toString()));
+                    runOnUiThread(() -> PacketHelperDialog.createView(null, v.getContext(), finalEditText.getText().toString()));
 
                     return true;
                 });

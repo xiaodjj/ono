@@ -39,6 +39,7 @@ import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -51,7 +52,6 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.android.dx.util.ByteArray;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -80,6 +80,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
@@ -93,15 +94,18 @@ import moe.ono.util.AppRuntimeHelper;
 import moe.ono.ui.CommonContextWrapper;
 import moe.ono.util.Logger;
 import moe.ono.util.SafUtils;
-import moe.ono.util.Session;
 import moe.ono.util.SyncUtils;
 
 @SuppressLint({"ResourceType", "StaticFieldLeak"})
-public class ElementSender extends BottomPopupView {
+public class PacketHelperDialog extends BottomPopupView {
     private final List<String> presetelems; // 存储预设元素的列表
     private final Map<String, String> elemContentMap; // 存储元素名称和内容的映射
     private final SharedPreferences sharedPreferences;
     private static EditText editText;
+    public static EditText etUin;
+    public static EditText etDesc;
+    public static EditText etHint;
+    public static EditText etNickname;
     private static String preContent;
     private static Dialog elem_dialog = null;
     private static View decorView;
@@ -115,11 +119,12 @@ public class ElementSender extends BottomPopupView {
     public static int chatType;
     public static ContactCompat contactCompat;
     private static RadioGroup mRgSendType;
-    private static RadioGroup mRgSendBy;
+    public static RadioGroup mRgSendBy;
+    public static CheckBox mRbXmlForward;
 
 
 
-    public ElementSender(@NonNull Context context) {
+    public PacketHelperDialog(@NonNull Context context) {
         super(context);
         sharedPreferences = context.getSharedPreferences("OvO_Presetelems", Context.MODE_PRIVATE);
         presetelems = loadPresetElem();
@@ -141,7 +146,7 @@ public class ElementSender extends BottomPopupView {
         reportVisitor(AppRuntimeHelper.getAccount(), "CreateView-ElementSender");
 
 
-        BasePopupView popupView = NewPop.asCustom(new ElementSender(fixContext));
+        BasePopupView popupView = NewPop.asCustom(new PacketHelperDialog(fixContext));
         popupView.show();
     }
 
@@ -154,6 +159,11 @@ public class ElementSender extends BottomPopupView {
             chatType = Objects.requireNonNull(getContact()).getChatType();
             contactCompat = getContact();
 
+            etUin = findViewById(R.id.uin);
+            etDesc = findViewById(R.id.desc);
+            etHint = findViewById(R.id.hint);
+            etNickname = findViewById(R.id.nickname);
+
             mRgSendType = findViewById(R.id.rg_send_type);
             mRgSendBy = findViewById(R.id.rg_send_by);
 
@@ -164,18 +174,34 @@ public class ElementSender extends BottomPopupView {
             Button btnFormat = findViewById(R.id.btn_format);
             Button btnFullWindows = findViewById(R.id.btn_full_windows);
 
+            LinearLayout forwardConfig = findViewById(R.id.forward_config);
+            forwardConfig.setVisibility(GONE);
+
             editText.clearFocus();
             editText.setVisibility(VISIBLE);
             editText.setText(preContent);
 
+            mRgSendBy.setVisibility(GONE);
+
+            etHint.setVisibility(VISIBLE);
+            etDesc.setVisibility(VISIBLE);
+            etUin.setVisibility(VISIBLE);
+            etNickname.setVisibility(VISIBLE);
+
+            etUin.setText(AppRuntimeHelper.getAccount());
+
+            mRbXmlForward = findViewById(R.id.xml_forward);
+
             try {
                 mRgSendType.check(R.id.rb_element);
                 editText.setHint("Raw(array)...");
+                mRgSendBy.setVisibility(VISIBLE);
                 JSONObject jsonObject = new JSONObject(preContent);
                 try {
                     jsonObject.get("app");
                     mRgSendType.check(R.id.rb_ark);
                     editText.setHint("Json...");
+                    mRgSendBy.setVisibility(GONE);
                 } catch (JSONException ignored) {}
             } catch (Exception e) {
                 if (!Objects.equals(preContent, "")){
@@ -184,6 +210,7 @@ public class ElementSender extends BottomPopupView {
                     } catch (JSONException ex) {
                         editText.setHint("纯文本...");
                         mRgSendType.check(R.id.rb_text);
+                        mRgSendBy.setVisibility(GONE);
                     }
                 }
             }
@@ -224,14 +251,28 @@ public class ElementSender extends BottomPopupView {
                 switch (send_type){
                     case "element":
                         editText.setHint("Raw(array)...");
+                        mRgSendBy.setVisibility(VISIBLE);
                         break;
                     case "ark":
                         editText.setHint("Json...");
+                        mRgSendBy.setVisibility(GONE);
+                        forwardConfig.setVisibility(GONE);
                         break;
                     case "text":
                         editText.setHint("纯文本...");
+                        mRgSendBy.setVisibility(GONE);
+                        forwardConfig.setVisibility(GONE);
                         break;
                 }
+            });
+
+            mRgSendBy.setOnCheckedChangeListener((group, checkedId) -> {
+                if (mRgSendBy.getCheckedRadioButtonId() == R.id.rb_send_by_forwarding) {
+                    forwardConfig.setVisibility(VISIBLE);
+                } else {
+                    forwardConfig.setVisibility(GONE);
+                }
+
             });
 
             btnSend.setOnClickListener(v -> {
@@ -313,6 +354,75 @@ public class ElementSender extends BottomPopupView {
                                 "}".trim();
 
                         Logger.d("ElementSender-send-by-longmsg", json);
+                        QPacketHelperKt.sendPacket("trpc.group.long_msg_interface.MsgService.SsoSendLongMsg", json);
+                    } else if (rbSendBy == R.id.rb_send_by_forwarding){
+                        String data = "{\"2\": {\n" +
+                                "  \"1\": \"MultiMsg\",\n" +
+                                "  \"2\": {\n" +
+                                "    \"1\": [\n" +
+                                "      {\n" +
+                                "        \"1\": {\n" +
+                                "          \"1\": "+etUin.getText()+",\n" +
+                                "          \"5\": {},\n" +
+                                "          \"6\": {},\n" +
+                                "          \"7\": {},\n" +
+                                "          \"8\": {\n" +
+                                "            \"1\": 10001,\n" +
+                                "            \"4\": \"@ouom_pub\",\n" +
+                                "            \"5\": 2\n" +
+                                "          }\n" +
+                                "        },\n" +
+                                "        \"2\": {\n" +
+                                "          \"1\": 82,\n" +
+                                "          \"2\": {},\n" +
+                                "          \"3\": {},\n" +
+                                "          \"4\": "+ThreadLocalRandom.current().nextInt(0, 10000000)+",\n" +
+                                "          \"5\": "+ThreadLocalRandom.current().nextInt(0, 100000)+",\n" +
+                                "          \"6\": "+ThreadLocalRandom.current().nextInt(0, 10000000)+",\n" +
+                                "          \"7\": 1,\n" +
+                                "          \"8\": 0,\n" +
+                                "          \"9\": 0,\n" +
+                                "          \"15\": {\n" +
+                                "            \"1\": 0,\n" +
+                                "            \"2\": 0,\n" +
+                                "            \"3\": 0,\n" +
+                                "            \"4\": \"\",\n" +
+                                "            \"5\": \"\"\n" +
+                                "          }\n" +
+                                "        },\n" +
+                                "        \"3\": {\n" +
+                                "          \"1\": {\n" +
+                                "            \"2\": " + text +
+                                "          }\n" +
+                                "        }\n" +
+                                "      }\n" +
+                                "    ]\n" +
+                                "  }\n" +
+                                "}}\n".trim();
+
+                        Logger.d("data", data);
+                        byte[] protoBytes = QPacketHelperKt.buildMessage(data);
+                        byte[] compressedData = compressData(protoBytes);
+
+                        long target = Long.parseLong(chatType == GROUP ? peer : getUinFromUid(peer));
+
+                        String json = "{\n" +
+                                "  \"2\": {\n" +
+                                "    \"1\": " + (chatType == C2C ? 1 : 3) + ",\n" +
+                                "    \"2\": {\n" +
+                                "      \"2\": "+ target +"\n" +
+                                "    },\n" +
+                                "    \"4\": \"hex->"+bytesToHex(compressedData)+"\"\n" +
+                                "  },\n" +
+                                "  \"15\": {\n" +
+                                "    \"1\": 4,\n" +
+                                "    \"2\": 2,\n" +
+                                "    \"3\": 9,\n" +
+                                "    \"4\": 0\n" +
+                                "  }\n" +
+                                "}".trim();
+
+                        Logger.d("ElementSender-send-by-forward", json);
                         QPacketHelperKt.sendPacket("trpc.group.long_msg_interface.MsgService.SsoSendLongMsg", json);
                     }
                     Toasts.success(getContext(), "请求成功");
@@ -566,6 +676,20 @@ public class ElementSender extends BottomPopupView {
                 editText.setText(content);
                 mRgSendType.check(R.id.rb_element);
                 mRgSendBy.check(R.id.rb_send_by_directly);
+            } catch (Exception e) {
+                Logger.e(e);
+            }
+        });
+
+
+    }
+
+    public static void setContentForLongmsg(String content) {
+        SyncUtils.runOnUiThread(() -> {
+            try {
+                editText.setText(content);
+                mRgSendType.check(R.id.rb_element);
+                mRgSendBy.check(R.id.rb_send_by_longmsg);
             } catch (Exception e) {
                 Logger.e(e);
             }

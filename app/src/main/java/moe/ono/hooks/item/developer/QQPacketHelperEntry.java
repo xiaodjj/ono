@@ -1,23 +1,18 @@
 package moe.ono.hooks.item.developer;
 
-import static moe.ono.constants.Constants.CLAZZ_ACTIVITY_SPLASH;
 import static moe.ono.constants.Constants.CLAZZ_PANEL_ICON_LINEAR_LAYOUT;
-import static moe.ono.util.Initiator.loadClass;
 import static moe.ono.util.SyncUtils.runOnUiThread;
 
 import android.annotation.SuppressLint;
-import android.os.Bundle;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 
 import java.lang.reflect.Method;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedHelpers;
 import moe.ono.hooks._base.BaseSwitchFunctionHookItem;
 import moe.ono.hooks._core.annotation.HookItem;
-import moe.ono.creator.ElementSender;
+import moe.ono.creator.PacketHelperDialog;
 import moe.ono.reflex.XMethod;
 import moe.ono.util.Logger;
 
@@ -34,7 +29,7 @@ public class QQPacketHelperEntry extends BaseSwitchFunctionHookItem {
                 ImageView imageView = (ImageView) param.getResult();
                 if ("更多功能".contentEquals(imageView.getContentDescription())){
                     imageView.setOnLongClickListener(view -> {
-                        runOnUiThread(() -> ElementSender.createView(null, view.getContext(), ""));
+                        runOnUiThread(() -> PacketHelperDialog.createView(null, view.getContext(), ""));
                         return true;
                     });
                 }

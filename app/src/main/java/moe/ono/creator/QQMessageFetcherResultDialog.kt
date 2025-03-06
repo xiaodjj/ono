@@ -34,7 +34,7 @@ class QQMessageFetcherResultDialog(context: Context) : BottomPopupView(context) 
             val btnCopy = findViewById<Button>(R.id.btn_copy)
             val rgType = findViewById<RadioGroup>(R.id.rg_type)
             val tvContent = findViewById<TextView>(R.id.tv_content)
-            var copyText = ""
+            var copyText: String
 
             jsonViewer.setJson(content)
 
